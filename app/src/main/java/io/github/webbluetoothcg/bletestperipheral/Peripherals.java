@@ -23,13 +23,13 @@ public class Peripherals extends Activity {
     @Override
     public void onStartFailure(int errorCode) {
       super.onStartFailure(errorCode);
-      Log.d(TAG, "Not broadcasting");
+      Log.e(TAG, "Not broadcasting");
     }
 
     @Override
     public void onStartSuccess(AdvertiseSettings settingsInEffect) {
       super.onStartSuccess(settingsInEffect);
-      Log.d(TAG, "Broadcasting");
+      Log.v(TAG, "Broadcasting");
     }
   };
 
