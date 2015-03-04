@@ -80,6 +80,7 @@ public class Peripherals extends Activity {
       } else {
         //TODO(g-ortuno): UX for asking the user to activate bt
         Log.e(TAG, "Bluetooth not enabled");
+        finish();
       }
     }
   }
