@@ -150,8 +150,9 @@ public class Peripherals extends Activity {
   protected void onPause() {
     super.onPause();
     if (mAdvertiser != null) {
-      stopAdvertising();
+      // If stopAdvertising() gets called before stopGattServer() a null pointer exception is raised
       stopGattServer();
+      stopAdvertising();
     }
   }
 
@@ -188,9 +189,7 @@ public class Peripherals extends Activity {
     mGattServer.addService(batteryService);
   }
   private void stopGattServer() {
-    // Ideally we would like to close the server but that introduces a race condition where
-    // the server is closed before onConnectionStateChange is called.
-    mGattServer.clearServices();
+    mGattServer.close();
   }
 
   /////////////////////////////
