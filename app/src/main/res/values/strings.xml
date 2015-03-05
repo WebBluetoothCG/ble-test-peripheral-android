@@ -8,4 +8,9 @@
     <string name="status_advFeatureUnsupported">Not Advertising. Advertising not supported.</string>
     <string name="status_advInternalError">Not Advertising. Internal error occurred.</string>
     <string name="status_advTooManyAdvertisers">Not Advertising. No advertising instance is available.</string>
+
+    <!-- Bluetooth -->
+    <string name="bluetoothNotSupported">Bluetooth Not Supported</string>
+    <string name="bluetoothAdvertisingNotSupported">BLE Advertising Not Supported</string>
+    <string name="bluetoothNotEnabled">Bluetooth is Not Enabled</string>
 </resources>
