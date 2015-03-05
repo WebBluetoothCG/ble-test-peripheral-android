@@ -26,21 +26,21 @@ public class Peripherals extends Activity {
     public void onStartFailure(int errorCode) {
       super.onStartFailure(errorCode);
       Log.e(TAG, "Not broadcasting: " + errorCode);
-      int toastText;
+      int statusText;
       switch (errorCode) {
         case ADVERTISE_FAILED_DATA_TOO_LARGE:
-          toastText = R.string.status_advDataTooLarge;
+          statusText = R.string.status_advDataTooLarge;
           break;
         case ADVERTISE_FAILED_INTERNAL_ERROR:
-          toastText = R.string.status_advInternalError;
+          statusText = R.string.status_advInternalError;
           break;
         case ADVERTISE_FAILED_TOO_MANY_ADVERTISERS:
-          toastText = R.string.status_advTooManyAdvertisers;
+          statusText = R.string.status_advTooManyAdvertisers;
           break;
         default:
-          toastText = R.string.status_notAdvertising;
+          statusText = R.string.status_notAdvertising;
       }
-      mAdvStatus.setText(toastText);
+      mAdvStatus.setText(statusText);
     }
 
     @Override
