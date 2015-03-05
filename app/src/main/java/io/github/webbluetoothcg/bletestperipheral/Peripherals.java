@@ -63,14 +63,14 @@ public class Peripherals extends Activity {
       super.onConnectionStateChange(device, status, newState);
       if (status == BluetoothGatt.GATT_SUCCESS) {
         if (newState == BluetoothGatt.STATE_CONNECTED) {
-          //TODO(g-ortuno): Pass to UI
-          Log.v(TAG, "Device connected");
+          //TODO(g-ortuno): Pass info to UI
+          Log.v(TAG, "Connected to device: " + device.getAddress());
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-          //TODO(g-ortuno): Pass to UI
-          Log.v(TAG, "Device disconnected");
+          //TODO(g-ortuno): Pass info to UI
+          Log.v(TAG, "Disconnected from device");
         }
       } else {
-        //TODO(g-ortuno): Pass to UI
+        //TODO(g-ortuno): Pass info to UI
         Log.e(TAG, "Error when connecting: " + status);
       }
     }
@@ -190,7 +190,7 @@ public class Peripherals extends Activity {
   }
   private void stopGattServer() {
     // Ideally we would like to close the server but that introduces a race condition where
-    // the server is closed before the onConnectionStateChange callback is done.
+    // the server is closed before onConnectionStateChange is called.
     mGattServer.clearServices();
   }
 
