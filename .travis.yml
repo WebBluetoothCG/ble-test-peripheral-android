@@ -11,5 +11,5 @@ android:
     # Use extra android repo locations to find the appcompat-v7:21.0.0 support library
     - extra
 
-    # Specify the build script to run.
-    script: "./travis/build.sh"
+# Specify the build script to run.
+script: "./travis/build.sh"
