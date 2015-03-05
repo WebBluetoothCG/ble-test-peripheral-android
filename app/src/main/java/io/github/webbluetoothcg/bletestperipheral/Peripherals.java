@@ -104,10 +104,11 @@ public class Peripherals extends Activity {
 
   @Override
   protected void onResume() {
+    super.onResume();
+
     mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
     mAdvStatus.setText(R.string.status_notAdvertising);
 
-    super.onResume();
     if (mAdvertiser != null) {
       startAdvertising();
     }
