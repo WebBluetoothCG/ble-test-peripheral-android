@@ -2,6 +2,12 @@ package io.github.webbluetoothcg.bletestperipheral;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattServer;
+import android.bluetooth.BluetoothGattServerCallback;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
@@ -12,13 +18,29 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.util.Arrays;
+import java.util.UUID;
+
 
 public class Peripherals extends Activity {
 
+  //TODO(g-ortuno): We will probably need a class to create services more easily
+  private static final UUID BATTERY_SERVICE_UUID = UUID
+      .fromString("0000180F-0000-1000-8000-00805f9b34fb");
+  private static final int BATTERY_SERVICE_TYPE = BluetoothGattService.SERVICE_TYPE_PRIMARY;
+
+  private static final UUID BATTERY_LEVEL_UUID = UUID
+      .fromString("00002A19-0000-1000-8000-00805f9b34fb");
+  private static final int BATTERY_LEVEL_PROPERTIES =
+      BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY;
+  private static final int BATTERY_LEVEL_PERMISSIONS = BluetoothGattCharacteristic.PERMISSION_READ;
+  // Sample battery level of 50
+  private static final byte[] BATTERY_LEVEL_SAMPLE =  new byte[]{50};
+
   private static final int REQUEST_ENABLE_BT = 1;
   private static final String TAG = Peripherals.class.getCanonicalName();
-  private static BluetoothLeAdvertiser mAdvertiser;
   private static BluetoothAdapter mBluetoothAdapter;
+  private static BluetoothLeAdvertiser mAdvertiser;
   private static final AdvertiseCallback advCallback = new AdvertiseCallback() {
     //TODO(g-ortuno): Implement passing the result to the UI
     @Override
@@ -31,6 +53,36 @@ public class Peripherals extends Activity {
     public void onStartSuccess(AdvertiseSettings settingsInEffect) {
       super.onStartSuccess(settingsInEffect);
       Log.v(TAG, "Broadcasting");
+    }
+  };
+
+  private static BluetoothGattServer mGattServer;
+  private static final BluetoothGattServerCallback gattServerCallback = new BluetoothGattServerCallback() {
+    @Override
+    public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
+      super.onConnectionStateChange(device, status, newState);
+      if (status == BluetoothGatt.GATT_SUCCESS) {
+        if (newState == BluetoothGatt.STATE_CONNECTED) {
+          //TODO(g-ortuno): Pass to UI
+          Log.v(TAG, "Device connected");
+        } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+          //TODO(g-ortuno): Pass to UI
+          Log.v(TAG, "Device disconnected");
+        }
+      } else {
+        //TODO(g-ortuno): Pass to UI
+        Log.e(TAG, "Error when connecting: " + status);
+      }
+    }
+
+    @Override
+    public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
+        BluetoothGattCharacteristic characteristic) {
+      super.onCharacteristicReadRequest(device, requestId, offset, characteristic);
+      Log.d(TAG, "Device tried to read characteristic: " + characteristic.getUuid());
+      Log.d(TAG, "Value: " + Arrays.toString(characteristic.getValue()));
+      mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS,
+          offset, characteristic.getValue());
     }
   };
 
@@ -89,6 +141,7 @@ public class Peripherals extends Activity {
   protected void onResume() {
     super.onResume();
     if (mAdvertiser != null) {
+      startGattServer();
       startAdvertising();
     }
   }
@@ -98,6 +151,7 @@ public class Peripherals extends Activity {
     super.onPause();
     if (mAdvertiser != null) {
       stopAdvertising();
+      stopGattServer();
     }
   }
 
@@ -122,5 +176,35 @@ public class Peripherals extends Activity {
 
   private void stopAdvertising() {
     mAdvertiser.stopAdvertising(advCallback);
+  }
+
+  /////////////////////////
+  ////// Gatt Server //////
+  /////////////////////////
+
+  private void startGattServer() {
+    BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
+    mGattServer = bluetoothManager.openGattServer(this, gattServerCallback);
+    BluetoothGattService batteryService = buildBatteryService();
+    mGattServer.addService(batteryService);
+  }
+  private void stopGattServer() {
+    // Ideally we would like to close the server but that introduces a race condition where
+    // the server is closed before the onConnectionStateChange callback is done.
+    mGattServer.clearServices();
+  }
+
+  /////////////////////////////
+  ////// Battery Service //////
+  /////////////////////////////
+  public BluetoothGattService buildBatteryService() {
+    BluetoothGattCharacteristic batteryCharacteristic =
+        new BluetoothGattCharacteristic(BATTERY_LEVEL_UUID, BATTERY_LEVEL_PROPERTIES,
+            BATTERY_LEVEL_PERMISSIONS);
+    batteryCharacteristic.setValue(BATTERY_LEVEL_SAMPLE);
+    BluetoothGattService batteryService = new BluetoothGattService(BATTERY_SERVICE_UUID,
+        BATTERY_SERVICE_TYPE);
+    batteryService.addCharacteristic(batteryCharacteristic);
+    return batteryService;
   }
 }
