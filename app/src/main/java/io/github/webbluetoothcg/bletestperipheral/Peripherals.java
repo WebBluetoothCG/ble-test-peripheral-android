@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
 
 public class Peripherals extends Activity {
@@ -19,18 +20,34 @@ public class Peripherals extends Activity {
   private static final String TAG = Peripherals.class.getCanonicalName();
   private static BluetoothLeAdvertiser mAdvertiser;
   private static BluetoothAdapter mBluetoothAdapter;
+  private static TextView mAdvStatus;
   private static final AdvertiseCallback advCallback = new AdvertiseCallback() {
-    //TODO(g-ortuno): Implement passing the result to the UI
     @Override
     public void onStartFailure(int errorCode) {
       super.onStartFailure(errorCode);
       Log.e(TAG, "Not broadcasting: " + errorCode);
+      int toastText;
+      switch (errorCode) {
+        case ADVERTISE_FAILED_DATA_TOO_LARGE:
+          toastText = R.string.status_advDataTooLarge;
+          break;
+        case ADVERTISE_FAILED_INTERNAL_ERROR:
+          toastText = R.string.status_advInternalError;
+          break;
+        case ADVERTISE_FAILED_TOO_MANY_ADVERTISERS:
+          toastText = R.string.status_advTooManyAdvertisers;
+          break;
+        default:
+          toastText = R.string.status_notAdvertising;
+      }
+      mAdvStatus.setText(toastText);
     }
 
     @Override
     public void onStartSuccess(AdvertiseSettings settingsInEffect) {
       super.onStartSuccess(settingsInEffect);
       Log.v(TAG, "Broadcasting");
+      mAdvStatus.setText(R.string.status_advertising);
     }
   };
 
@@ -87,6 +104,9 @@ public class Peripherals extends Activity {
 
   @Override
   protected void onResume() {
+    mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
+    mAdvStatus.setText(R.string.status_notAdvertising);
+
     super.onResume();
     if (mAdvertiser != null) {
       startAdvertising();
