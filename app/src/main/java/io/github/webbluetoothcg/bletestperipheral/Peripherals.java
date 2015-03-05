@@ -86,6 +86,7 @@ public class Peripherals extends Activity {
       if (status == BluetoothGatt.GATT_SUCCESS) {
         if (newState == BluetoothGatt.STATE_CONNECTED) {
           String deviceName = device.getName();
+          // Some devices don't return a name.
           if (deviceName == null) {
             deviceName = device.getAddress();
           }
