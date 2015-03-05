@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -33,21 +34,46 @@ public class Peripherals extends Activity {
 
   private static final int REQUEST_ENABLE_BT = 1;
   private static final String TAG = Peripherals.class.getCanonicalName();
+
+  private TextView mAdvStatus;
   private BluetoothManager mBluetoothManager;
   private BluetoothAdapter mBluetoothAdapter;
   private BluetoothLeAdvertiser mAdvertiser;
   private final AdvertiseCallback mAdvCallback = new AdvertiseCallback() {
-    //TODO(g-ortuno): Implement passing the result to the UI
     @Override
     public void onStartFailure(int errorCode) {
       super.onStartFailure(errorCode);
       Log.e(TAG, "Not broadcasting: " + errorCode);
+      int statusText;
+      switch (errorCode) {
+        case ADVERTISE_FAILED_ALREADY_STARTED:
+          statusText = R.string.status_advertising;
+          Log.w(TAG, "App was already advertising");
+          break;
+        case ADVERTISE_FAILED_DATA_TOO_LARGE:
+          statusText = R.string.status_advDataTooLarge;
+          break;
+        case ADVERTISE_FAILED_FEATURE_UNSUPPORTED:
+          statusText = R.string.status_advFeatureUnsupported;
+          break;
+        case ADVERTISE_FAILED_INTERNAL_ERROR:
+          statusText = R.string.status_advInternalError;
+          break;
+        case ADVERTISE_FAILED_TOO_MANY_ADVERTISERS:
+          statusText = R.string.status_advTooManyAdvertisers;
+          break;
+        default:
+          statusText = R.string.status_notAdvertising;
+          Log.wtf(TAG, "Unhandled error: " + errorCode);
+      }
+      mAdvStatus.setText(statusText);
     }
 
     @Override
     public void onStartSuccess(AdvertiseSettings settingsInEffect) {
       super.onStartSuccess(settingsInEffect);
       Log.v(TAG, "Broadcasting");
+      mAdvStatus.setText(R.string.status_advertising);
     }
   };
 
@@ -140,6 +166,10 @@ public class Peripherals extends Activity {
   @Override
   protected void onResume() {
     super.onResume();
+
+    mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
+    mAdvStatus.setText(R.string.status_notAdvertising);
+
     if (mAdvertiser != null) {
       startGattServer();
       startAdvertising();

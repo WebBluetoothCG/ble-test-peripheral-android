@@ -1,5 +1,11 @@
 <resources>
     <string name="app_name">BLE Test Peripheral</string>
 
-    <string name="hello_world">Hello world!</string>
+    <string name="label_advertisingStatus">Advertising Status</string>
+    <string name="status_advertising">Advertising</string>
+    <string name="status_notAdvertising">Not Advertising</string>
+    <string name="status_advDataTooLarge">Not Advertising. Advertisement is larger than 31 bytes.</string>
+    <string name="status_advFeatureUnsupported">Not Advertising. Advertising not supported.</string>
+    <string name="status_advInternalError">Not Advertising. Internal error occurred.</string>
+    <string name="status_advTooManyAdvertisers">Not Advertising. No advertising instance is available.</string>
 </resources>
