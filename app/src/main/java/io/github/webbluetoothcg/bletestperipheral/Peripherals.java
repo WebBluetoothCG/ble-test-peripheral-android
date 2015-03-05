@@ -33,10 +33,10 @@ public class Peripherals extends Activity {
 
   private static final int REQUEST_ENABLE_BT = 1;
   private static final String TAG = Peripherals.class.getCanonicalName();
-  private static BluetoothManager mBluetoothManager;
-  private static BluetoothAdapter mBluetoothAdapter;
-  private static BluetoothLeAdvertiser mAdvertiser;
-  private static final AdvertiseCallback mAdvCallback = new AdvertiseCallback() {
+  private BluetoothManager mBluetoothManager;
+  private BluetoothAdapter mBluetoothAdapter;
+  private BluetoothLeAdvertiser mAdvertiser;
+  private final AdvertiseCallback mAdvCallback = new AdvertiseCallback() {
     //TODO(g-ortuno): Implement passing the result to the UI
     @Override
     public void onStartFailure(int errorCode) {
@@ -51,8 +51,8 @@ public class Peripherals extends Activity {
     }
   };
 
-  private static BluetoothGattServer mGattServer;
-  private static final BluetoothGattServerCallback mGattServerCallback = new BluetoothGattServerCallback() {
+  private BluetoothGattServer mGattServer;
+  private final BluetoothGattServerCallback mGattServerCallback = new BluetoothGattServerCallback() {
     @Override
     public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
       super.onConnectionStateChange(device, status, newState);
@@ -150,7 +150,8 @@ public class Peripherals extends Activity {
   protected void onPause() {
     super.onPause();
     if (mAdvertiser != null) {
-      // If stopAdvertising() gets called before stopGattServer() a null pointer exception is raised
+      // If stopAdvertising() gets called before stopGattServer() a null
+      // pointer exception is raised.
       stopGattServer();
       stopAdvertising();
     }
@@ -196,16 +197,16 @@ public class Peripherals extends Activity {
   ////// Battery Service //////
   /////////////////////////////
   public BluetoothGattService buildBatteryService() {
-    int properties = BluetoothGattCharacteristic.PROPERTY_READ
-        | BluetoothGattCharacteristic.PROPERTY_NOTIFY;
-    int permissions = BluetoothGattCharacteristic.PERMISSION_READ;
-    // Sample battery level of 50
-    int sampleLevel = 50;
 
     BluetoothGattCharacteristic batteryCharacteristic =
-        new BluetoothGattCharacteristic(BATTERY_LEVEL_UUID, properties,
-            permissions);
-    batteryCharacteristic.setValue(sampleLevel, BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+        new BluetoothGattCharacteristic(BATTERY_LEVEL_UUID,
+            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+            BluetoothGattCharacteristic.PERMISSION_READ);
+
+    batteryCharacteristic.setValue(
+        /* sample battery level of 50% */ 50,
+        BluetoothGattCharacteristic.FORMAT_UINT8,
+        /* offset */ 0);
 
     BluetoothGattService batteryService = new BluetoothGattService(BATTERY_SERVICE_UUID,
         BluetoothGattService.SERVICE_TYPE_PRIMARY);
