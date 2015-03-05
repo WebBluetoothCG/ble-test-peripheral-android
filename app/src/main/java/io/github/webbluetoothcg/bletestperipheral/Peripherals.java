@@ -36,6 +36,7 @@ public class Peripherals extends Activity {
   private static final String TAG = Peripherals.class.getCanonicalName();
 
   private TextView mAdvStatus;
+  private TextView mConnectionStatus;
   private BluetoothManager mBluetoothManager;
   private BluetoothAdapter mBluetoothAdapter;
   private BluetoothLeAdvertiser mAdvertiser;
@@ -80,18 +81,41 @@ public class Peripherals extends Activity {
   private BluetoothGattServer mGattServer;
   private final BluetoothGattServerCallback mGattServerCallback = new BluetoothGattServerCallback() {
     @Override
-    public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
+    public void onConnectionStateChange(BluetoothDevice device, final int status, int newState) {
       super.onConnectionStateChange(device, status, newState);
       if (status == BluetoothGatt.GATT_SUCCESS) {
         if (newState == BluetoothGatt.STATE_CONNECTED) {
-          //TODO(g-ortuno): Pass info to UI
+          String deviceName = device.getName();
+          if (deviceName == null) {
+            deviceName = device.getAddress();
+          }
+          final String message = getString(R.string.status_connectedTo) + " " + deviceName;
+          runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              mConnectionStatus.setText(message);
+            }
+          });
           Log.v(TAG, "Connected to device: " + device.getAddress());
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-          //TODO(g-ortuno): Pass info to UI
+          runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              mConnectionStatus.setText(R.string.status_notConnected);
+            }
+          });
           Log.v(TAG, "Disconnected from device");
         }
       } else {
-        //TODO(g-ortuno): Pass info to UI
+        // There are too many gatt errors (some of them not even in the documentation) so we just
+        // show the error to the user.
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            String errorMessage = getString(R.string.errorCode) + ": " + status;
+            mConnectionStatus.setText(errorMessage);
+          }
+        });
         Log.e(TAG, "Error when connecting: " + status);
       }
     }
@@ -169,6 +193,8 @@ public class Peripherals extends Activity {
 
     mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
     mAdvStatus.setText(R.string.status_notAdvertising);
+    mConnectionStatus = (TextView) findViewById(R.id.textView_connectionStatus);
+    mConnectionStatus.setText(R.string.status_notConnected);
 
     if (mAdvertiser != null) {
       startGattServer();
