@@ -110,10 +110,10 @@ public class Peripherals extends Activity {
       } else {
         // There are too many gatt errors (some of them not even in the documentation) so we just
         // show the error to the user.
+        final String errorMessage = getString(R.string.errorCode) + ": " + status;
         runOnUiThread(new Runnable() {
           @Override
           public void run() {
-            String errorMessage = getString(R.string.errorCode) + ": " + status;
             mConnectionStatus.setText(errorMessage);
           }
         });
