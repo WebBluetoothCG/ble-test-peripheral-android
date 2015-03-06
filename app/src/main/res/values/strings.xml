@@ -21,5 +21,6 @@
     <string name="status_notConnected">Not Connected to any devices</string>
     <string name="status_connectedTo">Connected to</string>
     <string name="errorCode">Error Code</string>
+    <string name="batteryService_name">Battery Service</string>
 
 </resources>
