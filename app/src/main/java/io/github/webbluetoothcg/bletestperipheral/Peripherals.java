@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -150,7 +151,7 @@ public class Peripherals extends Activity {
     mBluetoothAdapter = mBluetoothManager.getAdapter();
     // Check if bluetooth is supported
     if (mBluetoothAdapter == null) {
-      //TODO(g-ortuno): Show message in the UI and close the app
+      Toast.makeText(this, R.string.bluetoothNotSupported, Toast.LENGTH_LONG).show();
       Log.e(TAG, "Bluetooth not supported");
       finish();
     } else if (!mBluetoothAdapter.isEnabled()) {
@@ -159,7 +160,7 @@ public class Peripherals extends Activity {
       startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
     } else if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
       // Make sure device supports LE advertising
-      //TODO(g-ortuno): Show message in the UI and close the app
+      Toast.makeText(this, R.string.bluetoothAdvertisingNotSupported, Toast.LENGTH_LONG).show();
       Log.e(TAG, "Advertising not supported");
       finish();
     } else {
@@ -174,7 +175,7 @@ public class Peripherals extends Activity {
     if (requestCode == REQUEST_ENABLE_BT) {
       if (resultCode == RESULT_OK) {
         if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
-          //TODO(g-ortuno): Show message in the UI
+          Toast.makeText(this, R.string.bluetoothAdvertisingNotSupported, Toast.LENGTH_LONG).show();
           Log.e(TAG, "Advertising not supported");
           finish();
         } else {
@@ -182,6 +183,7 @@ public class Peripherals extends Activity {
         }
       } else {
         //TODO(g-ortuno): UX for asking the user to activate bt
+        Toast.makeText(this, R.string.bluetoothNotEnabled, Toast.LENGTH_LONG).show();
         Log.e(TAG, "Bluetooth not enabled");
         finish();
       }

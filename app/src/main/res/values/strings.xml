@@ -1,6 +1,12 @@
 <resources>
     <string name="app_name">BLE Test Peripheral</string>
 
+
+    <!-- Bluetooth -->
+    <string name="bluetoothNotSupported">BLE Test Peripheral closing: Bluetooth Not Supported</string>
+    <string name="bluetoothNotEnabled">BLE Test Peripheral closing: Bluetooth is Not Enabled</string>
+    <string name="bluetoothAdvertisingNotSupported">BLE Test Peripheral closing: BLE Advertising Not Supported</string>
+
     <!-- Adv -->
     <string name="label_advertisingStatus">Advertising Status</string>
     <string name="status_advertising">Advertising</string>
@@ -15,4 +21,5 @@
     <string name="status_notConnected">Not Connected to any devices</string>
     <string name="status_connectedTo">Connected to</string>
     <string name="errorCode">Error Code</string>
+
 </resources>
