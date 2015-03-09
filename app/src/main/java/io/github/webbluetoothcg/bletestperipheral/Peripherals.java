@@ -38,7 +38,7 @@ public class Peripherals extends Activity {
 
   private static final UUID BATTERY_LEVEL_UUID = UUID
       .fromString("00002A19-0000-1000-8000-00805f9b34fb");
-  private static final int SAMPLE_BATTERY_LEVEL = 50;
+  private static final int INITIAL_BATTERY_LEVEL = 50;
   private static final int BATTERY_LEVEL_MAX = 100;
   private static final int REQUEST_ENABLE_BT = 1;
   private static final String TAG = Peripherals.class.getCanonicalName();
@@ -56,7 +56,7 @@ public class Peripherals extends Activity {
         if (!newBatteryLevelString.isEmpty()
             && android.text.TextUtils.isDigitsOnly(newBatteryLevelString)) {
           int newBatteryLevel = Integer.parseInt(newBatteryLevelString);
-          if (newBatteryLevel < BATTERY_LEVEL_MAX) {
+          if (newBatteryLevel <= BATTERY_LEVEL_MAX) {
             mBatteryLevelCharacteristic.setValue(newBatteryLevel,
                 BluetoothGattCharacteristic.FORMAT_UINT8, /* offset */ 0);
             mBatteryLevelSeekBar.setProgress(newBatteryLevel);
@@ -323,12 +323,12 @@ public class Peripherals extends Activity {
             BluetoothGattCharacteristic.PERMISSION_READ);
 
     mBatteryLevelCharacteristic.setValue(
-        SAMPLE_BATTERY_LEVEL,
+        INITIAL_BATTERY_LEVEL,
         BluetoothGattCharacteristic.FORMAT_UINT8,
         /* offset */ 0);
 
-    mBatteryLevelEditText.setText(Integer.toString(SAMPLE_BATTERY_LEVEL));
-    mBatteryLevelSeekBar.setProgress(SAMPLE_BATTERY_LEVEL);
+    mBatteryLevelEditText.setText(Integer.toString(INITIAL_BATTERY_LEVEL));
+    mBatteryLevelSeekBar.setProgress(INITIAL_BATTERY_LEVEL);
 
     BluetoothGattService batteryService = new BluetoothGattService(BATTERY_SERVICE_UUID,
         BluetoothGattService.SERVICE_TYPE_PRIMARY);
