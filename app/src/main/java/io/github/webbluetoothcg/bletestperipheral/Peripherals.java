@@ -211,8 +211,25 @@ public class Peripherals extends Activity {
     mBatteryLevelSeekBar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 
     setUpBluetooth();
-    createAdvertisement();
-    createBatteryService();
+
+    mAdvSettings = new AdvertiseSettings.Builder()
+        .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+        .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
+        .setConnectable(true)
+        .build();
+    mAdvData = new AdvertiseData.Builder()
+        .setIncludeDeviceName(true)
+        .setIncludeTxPowerLevel(true)
+        .build();
+
+    mBatteryLevelCharacteristic =
+        new BluetoothGattCharacteristic(BATTERY_LEVEL_UUID,
+            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+            BluetoothGattCharacteristic.PERMISSION_READ);
+
+    mBatteryService = new BluetoothGattService(BATTERY_SERVICE_UUID,
+        BluetoothGattService.SERVICE_TYPE_PRIMARY);
+    mBatteryService.addCharacteristic(mBatteryLevelCharacteristic);
     setBatteryLevel(INITIAL_BATTERY_LEVEL, null);
   }
 
@@ -280,37 +297,6 @@ public class Peripherals extends Activity {
       mBatteryLevelSeekBar.setProgress(newBatteryLevel);
       mBatteryLevelEditText.setText(Integer.toString(newBatteryLevel));
     }
-  }
-
-  /////////////////////////
-  ////// Advertising //////
-  /////////////////////////
-
-  private void createAdvertisement() {
-    mAdvSettings = new AdvertiseSettings.Builder()
-        .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
-        .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
-        .setConnectable(true)
-        .build();
-    mAdvData = new AdvertiseData.Builder()
-        .setIncludeDeviceName(true)
-        .setIncludeTxPowerLevel(true)
-        .build();
-  }
-
-  /////////////////////////////
-  ////// Battery Service //////
-  /////////////////////////////
-  private void createBatteryService() {
-
-    mBatteryLevelCharacteristic =
-        new BluetoothGattCharacteristic(BATTERY_LEVEL_UUID,
-            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-            BluetoothGattCharacteristic.PERMISSION_READ);
-
-    mBatteryService = new BluetoothGattService(BATTERY_SERVICE_UUID,
-        BluetoothGattService.SERVICE_TYPE_PRIMARY);
-    mBatteryService.addCharacteristic(mBatteryLevelCharacteristic);
   }
 
   ///////////////////////
