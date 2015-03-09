@@ -55,7 +55,7 @@ public class Peripherals extends Activity {
         // true for empty strings.
         if (!newBatteryLevelString.isEmpty()
             && android.text.TextUtils.isDigitsOnly(newBatteryLevelString)) {
-          int newBatteryLevel = Integer.parseInt(v.getText().toString());
+          int newBatteryLevel = Integer.parseInt(newBatteryLevelString);
           if (newBatteryLevel < BATTERY_LEVEL_MAX) {
             mBatteryLevelCharacteristic.setValue(newBatteryLevel,
                 BluetoothGattCharacteristic.FORMAT_UINT8, /* offset */ 0);
