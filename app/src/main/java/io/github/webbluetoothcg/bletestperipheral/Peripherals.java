@@ -56,16 +56,16 @@ public class Peripherals extends Activity {
         if (!newBatteryLevelString.isEmpty()
             && android.text.TextUtils.isDigitsOnly(newBatteryLevelString)) {
           int newBatteryLevel = Integer.parseInt(v.getText().toString());
-          if (BATTERY_LEVEL_MAX < newBatteryLevel) {
-            Toast.makeText(Peripherals.this, R.string.batteryLevelTooHigh, Toast.LENGTH_SHORT)
-                .show();
-          } else {
+          if (newBatteryLevel < BATTERY_LEVEL_MAX) {
             mBatteryLevelCharacteristic.setValue(newBatteryLevel,
                 BluetoothGattCharacteristic.FORMAT_UINT8, /* offset */ 0);
             mBatteryLevelSeekBar.setProgress(newBatteryLevel);
+          } else {
+            Toast.makeText(Peripherals.this, R.string.batteryLevelTooHigh, Toast.LENGTH_SHORT)
+                .show();
           }
         } else {
-          Toast.makeText(Peripherals.this, R.string.batteryLevelNotNumber, Toast.LENGTH_SHORT)
+          Toast.makeText(Peripherals.this, R.string.batteryLevelIncorrect, Toast.LENGTH_SHORT)
               .show();
         }
       }
@@ -202,9 +202,7 @@ public class Peripherals extends Activity {
     setContentView(R.layout.activity_peripherals);
 
     mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
-    mAdvStatus.setText(R.string.status_notAdvertising);
     mConnectionStatus = (TextView) findViewById(R.id.textView_connectionStatus);
-    mConnectionStatus.setText(R.string.status_notConnected);
     mBatteryLevelEditText = (EditText) findViewById(R.id.textView_batteryLevel);
     mBatteryLevelEditText.setOnEditorActionListener(mOnEditorActionListener);
     mBatteryLevelSeekBar = (SeekBar) findViewById(R.id.seekBar_batteryLevel);
@@ -258,6 +256,8 @@ public class Peripherals extends Activity {
   protected void onResume() {
     super.onResume();
 
+    mAdvStatus.setText(R.string.status_notAdvertising);
+    mConnectionStatus.setText(R.string.status_notConnected);
 
     if (mAdvertiser != null) {
       startGattServer();

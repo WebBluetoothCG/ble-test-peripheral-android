@@ -22,7 +22,6 @@
     <string name="status_connectedTo">Connected to</string>
     <string name="errorCode">Error Code</string>
     <string name="batteryService_name">Battery Service</string>
-    <string name="batteryLevelTooHigh">Batter Level is too high</string>
-    <string name="batteryLevelNotNumber">Battery Level is not a Number</string>
-
+    <string name="batteryLevelTooHigh">Batter Level shouldn\'t exceed 100</string>
+    <string name="batteryLevelIncorrect">Please enter a number between 0 and 100</string>
 </resources>
