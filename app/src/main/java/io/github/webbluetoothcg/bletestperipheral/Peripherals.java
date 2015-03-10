@@ -210,7 +210,7 @@ public class Peripherals extends Activity {
     mBatteryLevelSeekBar = (SeekBar) findViewById(R.id.seekBar_batteryLevel);
     mBatteryLevelSeekBar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 
-    setUpBluetooth();
+    ensureBleFeaturesAvailable();
 
     mAdvSettings = new AdvertiseSettings.Builder()
         .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
@@ -260,9 +260,9 @@ public class Peripherals extends Activity {
     super.onStart();
     if (mAdvertiser != null) {
       resetStatusViews();
-      // When a device in the central role connects to the app, the device will see two services:
-      // Generic Attribute and Generic Access.
       mGattServer = mBluetoothManager.openGattServer(this, mGattServerCallback);
+      // Add a battery service for a total of three services (Generic Attribute and Generic Access
+      // are present by default).
       mGattServer.addService(mBatteryService);
       mAdvertiser.startAdvertising(mAdvSettings, mAdvData, mAdvCallback);
     }
@@ -289,10 +289,13 @@ public class Peripherals extends Activity {
   private void setBatteryLevel(int newBatteryLevel, View source) {
     mBatteryLevelCharacteristic.setValue(newBatteryLevel,
         BluetoothGattCharacteristic.FORMAT_UINT8, /* offset */ 0);
-    if (source instanceof TextView) {
+    // If the source of the new value is EditText update SeekBar
+    if (source == mBatteryLevelEditText) {
       mBatteryLevelSeekBar.setProgress(newBatteryLevel);
-    } else if (source instanceof SeekBar) {
+    // If the source of the new value is SeekBar update EditText
+    } else if (source == mBatteryLevelSeekBar) {
       mBatteryLevelEditText.setText(Integer.toString(newBatteryLevel));
+    // If neither then update both
     } else {
       mBatteryLevelSeekBar.setProgress(newBatteryLevel);
       mBatteryLevelEditText.setText(Integer.toString(newBatteryLevel));
@@ -302,7 +305,7 @@ public class Peripherals extends Activity {
   ///////////////////////
   ////// Bluetooth //////
   ///////////////////////
-  private void setUpBluetooth() {
+  private void ensureBleFeaturesAvailable() {
     mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
     mBluetoothAdapter = mBluetoothManager.getAdapter();
 
