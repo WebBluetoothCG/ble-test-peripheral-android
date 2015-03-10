@@ -202,7 +202,6 @@ public class Peripherals extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_peripherals);
-
     mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
     mConnectionStatus = (TextView) findViewById(R.id.textView_connectionStatus);
     mBatteryLevelEditText = (EditText) findViewById(R.id.textView_batteryLevel);
@@ -244,6 +243,7 @@ public class Peripherals extends Activity {
           finish();
         } else {
           mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
+          onStart();
         }
       } else {
         //TODO(g-ortuno): UX for asking the user to activate bt
@@ -289,15 +289,10 @@ public class Peripherals extends Activity {
   private void setBatteryLevel(int newBatteryLevel, View source) {
     mBatteryLevelCharacteristic.setValue(newBatteryLevel,
         BluetoothGattCharacteristic.FORMAT_UINT8, /* offset */ 0);
-    // If the source of the new value is EditText update SeekBar
-    if (source == mBatteryLevelEditText) {
+    if (source != mBatteryLevelSeekBar) {
       mBatteryLevelSeekBar.setProgress(newBatteryLevel);
-    // If the source of the new value is SeekBar update EditText
-    } else if (source == mBatteryLevelSeekBar) {
-      mBatteryLevelEditText.setText(Integer.toString(newBatteryLevel));
-    // If neither then update both
-    } else {
-      mBatteryLevelSeekBar.setProgress(newBatteryLevel);
+    }
+    if (source != mBatteryLevelEditText) {
       mBatteryLevelEditText.setText(Integer.toString(newBatteryLevel));
     }
   }
@@ -314,11 +309,11 @@ public class Peripherals extends Activity {
       Log.e(TAG, "Bluetooth not supported");
       finish();
     } else if (!mBluetoothAdapter.isEnabled()) {
-      // Make sure bluetooth is enabled
+      // Make sure bluetooth is enabled.
       Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
       startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
     } else if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
-      // Make sure device supports LE advertising
+      // Make sure device supports LE advertising.
       Toast.makeText(this, R.string.bluetoothAdvertisingNotSupported, Toast.LENGTH_LONG).show();
       Log.e(TAG, "Advertising not supported");
       finish();
