@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.SeekBar;
@@ -48,18 +49,16 @@ public class Peripherals extends Activity {
   private EditText mBatteryLevelEditText;
   private final OnEditorActionListener mOnEditorActionListener = new OnEditorActionListener() {
     @Override
-    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+    public boolean onEditorAction(TextView textView, int actionId, KeyEvent event) {
       if (actionId == EditorInfo.IME_ACTION_DONE) {
-        String newBatteryLevelString = v.getText().toString();
+        String newBatteryLevelString = textView.getText().toString();
         // Need to check if the string is empty since isDigitsOnly returns
         // true for empty strings.
         if (!newBatteryLevelString.isEmpty()
             && android.text.TextUtils.isDigitsOnly(newBatteryLevelString)) {
           int newBatteryLevel = Integer.parseInt(newBatteryLevelString);
           if (newBatteryLevel <= BATTERY_LEVEL_MAX) {
-            mBatteryLevelCharacteristic.setValue(newBatteryLevel,
-                BluetoothGattCharacteristic.FORMAT_UINT8, /* offset */ 0);
-            mBatteryLevelSeekBar.setProgress(newBatteryLevel);
+            setBatteryLevel(newBatteryLevel, textView);
           } else {
             Toast.makeText(Peripherals.this, R.string.batteryLevelTooHigh, Toast.LENGTH_SHORT)
                 .show();
@@ -76,9 +75,9 @@ public class Peripherals extends Activity {
   private final OnSeekBarChangeListener mOnSeekBarChangeListener = new OnSeekBarChangeListener() {
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-      mBatteryLevelCharacteristic.setValue(progress, BluetoothGattCharacteristic.FORMAT_UINT8,
-            /* offset */ 0);
-      mBatteryLevelEditText.setText(Integer.toString(progress));
+      if (fromUser) {
+        setBatteryLevel(progress, seekBar);
+      }
     }
 
     @Override
@@ -93,6 +92,9 @@ public class Peripherals extends Activity {
   };
   private BluetoothManager mBluetoothManager;
   private BluetoothAdapter mBluetoothAdapter;
+  private AdvertiseData mAdvData;
+  private AdvertiseSettings mAdvSettings;
+  private BluetoothGattService mBatteryService;
   private BluetoothGattCharacteristic mBatteryLevelCharacteristic;
   private BluetoothLeAdvertiser mAdvertiser;
   private final AdvertiseCallback mAdvCallback = new AdvertiseCallback() {
@@ -200,40 +202,39 @@ public class Peripherals extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_peripherals);
-
     mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
     mConnectionStatus = (TextView) findViewById(R.id.textView_connectionStatus);
     mBatteryLevelEditText = (EditText) findViewById(R.id.textView_batteryLevel);
     mBatteryLevelEditText.setOnEditorActionListener(mOnEditorActionListener);
     mBatteryLevelSeekBar = (SeekBar) findViewById(R.id.seekBar_batteryLevel);
-    mBatteryLevelSeekBar.setMax(BATTERY_LEVEL_MAX);
     mBatteryLevelSeekBar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 
-    mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-    mBluetoothAdapter = mBluetoothManager.getAdapter();
-    // Check if bluetooth is supported
-    if (mBluetoothAdapter == null) {
-      Toast.makeText(this, R.string.bluetoothNotSupported, Toast.LENGTH_LONG).show();
-      Log.e(TAG, "Bluetooth not supported");
-      finish();
-    } else if (!mBluetoothAdapter.isEnabled()) {
-      // Make sure bluetooth is enabled
-      Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-      startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-    } else if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
-      // Make sure device supports LE advertising
-      Toast.makeText(this, R.string.bluetoothAdvertisingNotSupported, Toast.LENGTH_LONG).show();
-      Log.e(TAG, "Advertising not supported");
-      finish();
-    } else {
-      mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
-    }
+    ensureBleFeaturesAvailable();
+
+    mAdvSettings = new AdvertiseSettings.Builder()
+        .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+        .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
+        .setConnectable(true)
+        .build();
+    mAdvData = new AdvertiseData.Builder()
+        .setIncludeDeviceName(true)
+        .setIncludeTxPowerLevel(true)
+        .build();
+
+    mBatteryLevelCharacteristic =
+        new BluetoothGattCharacteristic(BATTERY_LEVEL_UUID,
+            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+            BluetoothGattCharacteristic.PERMISSION_READ);
+
+    mBatteryService = new BluetoothGattService(BATTERY_SERVICE_UUID,
+        BluetoothGattService.SERVICE_TYPE_PRIMARY);
+    mBatteryService.addCharacteristic(mBatteryLevelCharacteristic);
+    setBatteryLevel(INITIAL_BATTERY_LEVEL, null);
   }
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
-    Log.d(TAG, "On result");
     if (requestCode == REQUEST_ENABLE_BT) {
       if (resultCode == RESULT_OK) {
         if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
@@ -242,6 +243,7 @@ public class Peripherals extends Activity {
           finish();
         } else {
           mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
+          onStart();
         }
       } else {
         //TODO(g-ortuno): UX for asking the user to activate bt
@@ -252,89 +254,71 @@ public class Peripherals extends Activity {
     }
   }
 
+
   @Override
-  protected void onResume() {
-    super.onResume();
-
-    mAdvStatus.setText(R.string.status_notAdvertising);
-    mConnectionStatus.setText(R.string.status_notConnected);
-
+  protected void onStart() {
+    super.onStart();
     if (mAdvertiser != null) {
-      startGattServer();
-      startAdvertising();
+      resetStatusViews();
+      mGattServer = mBluetoothManager.openGattServer(this, mGattServerCallback);
+      // Add a battery service for a total of three services (Generic Attribute and Generic Access
+      // are present by default).
+      mGattServer.addService(mBatteryService);
+      mAdvertiser.startAdvertising(mAdvSettings, mAdvData, mAdvCallback);
     }
   }
 
+
   @Override
-  protected void onPause() {
+  protected void onStop() {
     super.onPause();
     if (mAdvertiser != null) {
-      // If stopAdvertising() gets called before stopGattServer() a null
+      // If stopAdvertising() gets called before close() a null
       // pointer exception is raised.
-      stopGattServer();
-      stopAdvertising();
+      mGattServer.close();
+      mAdvertiser.stopAdvertising(mAdvCallback);
+      resetStatusViews();
     }
   }
 
-  /////////////////////////
-  ////// Advertising //////
-  /////////////////////////
-
-  private void startAdvertising() {
-    AdvertiseData advertisedData = new AdvertiseData.Builder()
-        .setIncludeDeviceName(true)
-        .setIncludeTxPowerLevel(true)
-        .build();
-    AdvertiseSettings advertiseSettings = new AdvertiseSettings.Builder()
-        .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
-        .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
-        .setConnectable(true)
-        .build();
-    // When a device in the central role connects to the app, the device will see two services:
-    // Generic Attribute and Generic Access.
-    mAdvertiser.startAdvertising(advertiseSettings, advertisedData, mAdvCallback);
+  private void resetStatusViews() {
+    mAdvStatus.setText(R.string.status_notAdvertising);
+    mConnectionStatus.setText(R.string.status_notConnected);
   }
 
-  private void stopAdvertising() {
-    mAdvertiser.stopAdvertising(mAdvCallback);
+  private void setBatteryLevel(int newBatteryLevel, View source) {
+    mBatteryLevelCharacteristic.setValue(newBatteryLevel,
+        BluetoothGattCharacteristic.FORMAT_UINT8, /* offset */ 0);
+    if (source != mBatteryLevelSeekBar) {
+      mBatteryLevelSeekBar.setProgress(newBatteryLevel);
+    }
+    if (source != mBatteryLevelEditText) {
+      mBatteryLevelEditText.setText(Integer.toString(newBatteryLevel));
+    }
   }
 
-  /////////////////////////
-  ////// Gatt Server //////
-  /////////////////////////
+  ///////////////////////
+  ////// Bluetooth //////
+  ///////////////////////
+  private void ensureBleFeaturesAvailable() {
+    mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+    mBluetoothAdapter = mBluetoothManager.getAdapter();
 
-  private void startGattServer() {
-    mGattServer = mBluetoothManager.openGattServer(this, mGattServerCallback);
-    BluetoothGattService batteryService = buildBatteryService();
-    mGattServer.addService(batteryService);
+    if (mBluetoothAdapter == null) {
+      Toast.makeText(this, R.string.bluetoothNotSupported, Toast.LENGTH_LONG).show();
+      Log.e(TAG, "Bluetooth not supported");
+      finish();
+    } else if (!mBluetoothAdapter.isEnabled()) {
+      // Make sure bluetooth is enabled.
+      Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+      startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+    } else if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
+      // Make sure device supports LE advertising.
+      Toast.makeText(this, R.string.bluetoothAdvertisingNotSupported, Toast.LENGTH_LONG).show();
+      Log.e(TAG, "Advertising not supported");
+      finish();
+    } else {
+      mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
+    }
   }
-  private void stopGattServer() {
-    mGattServer.close();
-  }
-
-  /////////////////////////////
-  ////// Battery Service //////
-  /////////////////////////////
-  public BluetoothGattService buildBatteryService() {
-
-    mBatteryLevelCharacteristic =
-        new BluetoothGattCharacteristic(BATTERY_LEVEL_UUID,
-            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-            BluetoothGattCharacteristic.PERMISSION_READ);
-
-    mBatteryLevelCharacteristic.setValue(
-        INITIAL_BATTERY_LEVEL,
-        BluetoothGattCharacteristic.FORMAT_UINT8,
-        /* offset */ 0);
-
-    mBatteryLevelEditText.setText(Integer.toString(INITIAL_BATTERY_LEVEL));
-    mBatteryLevelSeekBar.setProgress(INITIAL_BATTERY_LEVEL);
-
-    BluetoothGattService batteryService = new BluetoothGattService(BATTERY_SERVICE_UUID,
-        BluetoothGattService.SERVICE_TYPE_PRIMARY);
-    batteryService.addCharacteristic(mBatteryLevelCharacteristic);
-
-    return batteryService;
-  }
-
 }
