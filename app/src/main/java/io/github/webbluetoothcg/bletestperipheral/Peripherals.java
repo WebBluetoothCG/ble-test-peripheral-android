@@ -259,7 +259,8 @@ public class Peripherals extends Activity {
   protected void onStart() {
     super.onStart();
     mGattServer = mBluetoothManager.openGattServer(this, mGattServerCallback);
-    // The user might have disabled bluetooth when the app was in the background
+    // If the user disabled Bluetooth when the app was in the background,
+    // openGattServer() will return null.
     if (mAdvertiser != null && mGattServer != null) {
       resetStatusViews();
       // Add a battery service for a total of three services (Generic Attribute and Generic Access
