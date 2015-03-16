@@ -150,14 +150,15 @@ public class Peripherals extends Activity {
 
     ensureBleFeaturesAvailable();
 
-    // If we are not being restored from a previous state then create and add the fragment
+    // If we are not being restored from a previous state then create and add the fragment.
     if (savedInstanceState == null) {
-      //Here we can decide what device to show. For now it's only Battery Service
-      //TODO(g-ortuno: Add more services
+      // Here we can decide what device to show by changing which fragment we initialize.
+      // For now we only have Battery Service.
+      // TODO(g-ortuno): Add more services.
       mServiceFragment = new BatteryServiceFragment();
       getFragmentManager().beginTransaction().add(R.id.fragment_container, mServiceFragment).commit();
     }
-
+    // TODO(g-ortuno): Make an abstract class for all services so that we don't have to cast.
     mBluetoothGattService = ((BatteryServiceFragment) mServiceFragment).getBluetoothGattService();
 
     mAdvSettings = new AdvertiseSettings.Builder()
