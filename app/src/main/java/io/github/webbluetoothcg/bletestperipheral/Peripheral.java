@@ -23,7 +23,6 @@ import android.widget.Toast;
 
 import java.util.Arrays;
 
-// TODO(g-ortuno): Change name to "Peripheral" or something more appropriate for it's new function.
 public class Peripheral extends Activity {
 
   private static final int REQUEST_ENABLE_BT = 1;
