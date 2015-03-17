@@ -28,11 +28,10 @@ public class Peripherals extends Activity {
 
   private static final int REQUEST_ENABLE_BT = 1;
   private static final String TAG = Peripherals.class.getCanonicalName();
+  private static final String CURRENT_FRAGMENT_TAG = "CURRENT_FRAGMENT";
 
   private TextView mAdvStatus;
   private TextView mConnectionStatus;
-
-  private Fragment mServiceFragment;
   private BluetoothGattService mBluetoothGattService;
 
   private BluetoothManager mBluetoothManager;
@@ -151,15 +150,23 @@ public class Peripherals extends Activity {
     ensureBleFeaturesAvailable();
 
     // If we are not being restored from a previous state then create and add the fragment.
+    Fragment currentServiceFragment;
     if (savedInstanceState == null) {
       // Here we can decide what device to show by changing which fragment we initialize.
       // For now we only have Battery Service.
       // TODO(g-ortuno): Add more services.
-      mServiceFragment = new BatteryServiceFragment();
-      getFragmentManager().beginTransaction().add(R.id.fragment_container, mServiceFragment).commit();
+      currentServiceFragment = new BatteryServiceFragment();
+      getFragmentManager()
+          .beginTransaction()
+          .add(R.id.fragment_container, currentServiceFragment, CURRENT_FRAGMENT_TAG)
+          .commit();
+    } else {
+      currentServiceFragment = getFragmentManager().findFragmentByTag(CURRENT_FRAGMENT_TAG);
     }
-    // TODO(g-ortuno): Make an abstract class for all services so that we don't have to cast.
-    mBluetoothGattService = ((BatteryServiceFragment) mServiceFragment).getBluetoothGattService();
+    // TODO(g-ortuno): Create abstract class to support various services without the need to cast
+    // their fragments.
+    mBluetoothGattService = ((BatteryServiceFragment) currentServiceFragment)
+        .getBluetoothGattService();
 
     mAdvSettings = new AdvertiseSettings.Builder()
         .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
