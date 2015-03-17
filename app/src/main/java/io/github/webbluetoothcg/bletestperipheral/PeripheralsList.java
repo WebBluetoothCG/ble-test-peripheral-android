@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 public class PeripheralsList extends ListActivity {
 
-  // TODO(g-ortuno): Add more services.
+  // TODO(g-ortuno): Add more peripherals.
   private static final String[] PERIPHERALS_NAMES = new String[]{"Battery"};
 
   @Override
@@ -69,8 +69,8 @@ public class PeripheralsList extends ListActivity {
       // need to inflate its view and save references to its children views.
       if (convertView == null) {
         view = mLayoutInflater.inflate(R.layout.list_item_peripheral, parent,
-         // Layout will be inflated but won't be attached to any other layout (so it won't be drawn,
-         // receive touch events etc).
+         // Layout will be inflated but won't be attached to any other layout so it won't be drawn,
+         // receive touch events, etc.
          /* attach to root */ false);
         holder = new ViewHolder();
         holder.textViewPeripheralName = (TextView) view.findViewById(R.id.textView_peripheralName);
