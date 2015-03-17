@@ -23,7 +23,7 @@ import android.widget.Toast;
 
 import java.util.Arrays;
 
-
+// TODO(g-ortuno): Change name to "Peripheral" or something more appropriate for it's new function
 public class Peripherals extends Activity {
 
   private static final int REQUEST_ENABLE_BT = 1;
@@ -147,6 +147,7 @@ public class Peripherals extends Activity {
     mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
     mConnectionStatus = (TextView) findViewById(R.id.textView_connectionStatus);
 
+    // TODO(g-ortuno): This can be moved to the peripherals list
     ensureBleFeaturesAvailable();
 
     // If we are not being restored from a previous state then create and add the fragment.
