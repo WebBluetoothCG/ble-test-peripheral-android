@@ -15,13 +15,13 @@ import android.widget.TextView;
 public class PeripheralsList extends ListActivity {
 
   // TODO(g-ortuno): Add more services
-  private static final String[] SERVICES_NAMES = new String[]{"Battery Service"};
+  private static final String[] PERIPHERALS_NAMES = new String[]{"Battery"};
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_peripherals_list);
-    PeripheralsListAdapter adapter = new PeripheralsListAdapter(this, SERVICES_NAMES);
+    PeripheralsListAdapter adapter = new PeripheralsListAdapter(this, PERIPHERALS_NAMES);
     setListAdapter(adapter);
   }
 
@@ -30,28 +30,28 @@ public class PeripheralsList extends ListActivity {
     super.onListItemClick(l, v, position, id);
 
     Intent intent = new Intent(this, Peripherals.class);
-    // TODO(g-ortuno): Pass the selected service to the peripheral activity
+    // TODO(g-ortuno): Pass the selected peripheral to the peripheral activity
     startActivity(intent);
   }
 
   private class PeripheralsListAdapter extends BaseAdapter{
 
     private LayoutInflater mLayoutInflater;
-    private String[] mServicesNames;
+    private String[] mPeripheralsNames;
 
-    public PeripheralsListAdapter(Context context, String[] servicesNames) {
+    public PeripheralsListAdapter(Context context, String[] peripheralsNames) {
       mLayoutInflater = LayoutInflater.from(context);
-      mServicesNames = servicesNames;
+      mPeripheralsNames = peripheralsNames;
     }
 
     @Override
     public int getCount() {
-      return mServicesNames.length;
+      return mPeripheralsNames.length;
     }
 
     @Override
     public String getItem(int position) {
-      return mServicesNames[position];
+      return mPeripheralsNames[position];
     }
 
     @Override
@@ -73,20 +73,20 @@ public class PeripheralsList extends ListActivity {
          // receive touch events etc).
          /* attach to root */ false);
         holder = new ViewHolder();
-        holder.textViewServiceName = (TextView) view.findViewById(R.id.textView_serviceName);
+        holder.textViewPeripheralName = (TextView) view.findViewById(R.id.textView_peripheralName);
         // Set tag to store data within a view without resorting to another data structure.
         view.setTag(holder);
       } else {
         view = convertView;
         holder = (ViewHolder) view.getTag();
       }
-      holder.textViewServiceName.setText(getItem(position));
+      holder.textViewPeripheralName.setText(getItem(position));
 
       return view;
     }
 
     private class ViewHolder {
-      public TextView textViewServiceName;
+      public TextView textViewPeripheralName;
     }
   }
 }

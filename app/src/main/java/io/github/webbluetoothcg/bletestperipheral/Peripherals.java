@@ -147,7 +147,7 @@ public class Peripherals extends Activity {
     mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
     mConnectionStatus = (TextView) findViewById(R.id.textView_connectionStatus);
 
-    // TODO(g-ortuno): This can be moved to the peripherals list
+    // TODO(g-ortuno): This can be moved to PeripheralsList
     ensureBleFeaturesAvailable();
 
     // If we are not being restored from a previous state then create and add the fragment.
