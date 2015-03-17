@@ -24,5 +24,4 @@
     <string name="batteryService_name">Battery Service</string>
     <string name="batteryLevelTooHigh">Batter Level shouldn\'t exceed 100</string>
     <string name="batteryLevelIncorrect">Please enter a number between 0 and 100</string>
-
 </resources>
