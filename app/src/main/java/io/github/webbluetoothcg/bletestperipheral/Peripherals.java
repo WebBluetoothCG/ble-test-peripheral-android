@@ -205,13 +205,17 @@ public class Peripherals extends Activity {
   @Override
   protected void onStart() {
     super.onStart();
-    if (mAdvertiser != null) {
+    mGattServer = mBluetoothManager.openGattServer(this, mGattServerCallback);
+    // If the user disabled Bluetooth when the app was in the background,
+    // openGattServer() will return null.
+    if (mAdvertiser != null && mGattServer != null) {
       resetStatusViews();
-      mGattServer = mBluetoothManager.openGattServer(this, mGattServerCallback);
       // Add a service for a total of three services (Generic Attribute and Generic Access
       // are present by default).
       mGattServer.addService(mBluetoothGattService);
       mAdvertiser.startAdvertising(mAdvSettings, mAdvData, mAdvCallback);
+    } else {
+      ensureBleFeaturesAvailable();
     }
   }
 
