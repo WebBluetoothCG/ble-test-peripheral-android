@@ -6,7 +6,7 @@
     <RelativeLayout android:layout_width="fill_parent"
                     android:layout_height="wrap_content">
         <TextView
-                android:id="@+id/textView_peripheralName"
+                android:id="@+id/textView_serviceName"
                 android:text="@string/batteryService_name"
                 android:textAppearance="@style/subheader"
                 android:gravity="center_vertical"
@@ -18,7 +18,7 @@
                 android:gravity="center_vertical"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/textView_peripheralName">
+                android:layout_below="@id/textView_serviceName">
             <ImageView
                     android:id="@+id/imageView_batteryIcon"
                     android:src="@drawable/battery_icon"
