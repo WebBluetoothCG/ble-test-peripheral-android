@@ -1,6 +1,7 @@
 package io.github.webbluetoothcg.bletestperipheral;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -17,85 +18,26 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
-import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
-import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
 import java.util.Arrays;
-import java.util.UUID;
 
 
 public class Peripherals extends Activity {
 
-  //TODO(g-ortuno): We will probably need a class to create services more easily
-  private static final UUID BATTERY_SERVICE_UUID = UUID
-      .fromString("0000180F-0000-1000-8000-00805f9b34fb");
-
-  private static final UUID BATTERY_LEVEL_UUID = UUID
-      .fromString("00002A19-0000-1000-8000-00805f9b34fb");
-  private static final int INITIAL_BATTERY_LEVEL = 50;
-  private static final int BATTERY_LEVEL_MAX = 100;
   private static final int REQUEST_ENABLE_BT = 1;
   private static final String TAG = Peripherals.class.getCanonicalName();
+  private static final String CURRENT_FRAGMENT_TAG = "CURRENT_FRAGMENT";
 
   private TextView mAdvStatus;
   private TextView mConnectionStatus;
-  private EditText mBatteryLevelEditText;
-  private final OnEditorActionListener mOnEditorActionListener = new OnEditorActionListener() {
-    @Override
-    public boolean onEditorAction(TextView textView, int actionId, KeyEvent event) {
-      if (actionId == EditorInfo.IME_ACTION_DONE) {
-        String newBatteryLevelString = textView.getText().toString();
-        // Need to check if the string is empty since isDigitsOnly returns
-        // true for empty strings.
-        if (!newBatteryLevelString.isEmpty()
-            && android.text.TextUtils.isDigitsOnly(newBatteryLevelString)) {
-          int newBatteryLevel = Integer.parseInt(newBatteryLevelString);
-          if (newBatteryLevel <= BATTERY_LEVEL_MAX) {
-            setBatteryLevel(newBatteryLevel, textView);
-          } else {
-            Toast.makeText(Peripherals.this, R.string.batteryLevelTooHigh, Toast.LENGTH_SHORT)
-                .show();
-          }
-        } else {
-          Toast.makeText(Peripherals.this, R.string.batteryLevelIncorrect, Toast.LENGTH_SHORT)
-              .show();
-        }
-      }
-      return false;
-    }
-  };
-  private SeekBar mBatteryLevelSeekBar;
-  private final OnSeekBarChangeListener mOnSeekBarChangeListener = new OnSeekBarChangeListener() {
-    @Override
-    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-      if (fromUser) {
-        setBatteryLevel(progress, seekBar);
-      }
-    }
+  private BluetoothGattService mBluetoothGattService;
 
-    @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-
-    }
-
-    @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
-
-    }
-  };
   private BluetoothManager mBluetoothManager;
   private BluetoothAdapter mBluetoothAdapter;
   private AdvertiseData mAdvData;
   private AdvertiseSettings mAdvSettings;
-  private BluetoothGattService mBatteryService;
-  private BluetoothGattCharacteristic mBatteryLevelCharacteristic;
   private BluetoothLeAdvertiser mAdvertiser;
   private final AdvertiseCallback mAdvCallback = new AdvertiseCallback() {
     @Override
@@ -204,12 +146,27 @@ public class Peripherals extends Activity {
     setContentView(R.layout.activity_peripherals);
     mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
     mConnectionStatus = (TextView) findViewById(R.id.textView_connectionStatus);
-    mBatteryLevelEditText = (EditText) findViewById(R.id.textView_batteryLevel);
-    mBatteryLevelEditText.setOnEditorActionListener(mOnEditorActionListener);
-    mBatteryLevelSeekBar = (SeekBar) findViewById(R.id.seekBar_batteryLevel);
-    mBatteryLevelSeekBar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 
     ensureBleFeaturesAvailable();
+
+    // If we are not being restored from a previous state then create and add the fragment.
+    Fragment currentServiceFragment;
+    if (savedInstanceState == null) {
+      // Here we can decide what device to show by changing which fragment we initialize.
+      // For now we only have Battery Service.
+      // TODO(g-ortuno): Add more services.
+      currentServiceFragment = new BatteryServiceFragment();
+      getFragmentManager()
+          .beginTransaction()
+          .add(R.id.fragment_container, currentServiceFragment, CURRENT_FRAGMENT_TAG)
+          .commit();
+    } else {
+      currentServiceFragment = getFragmentManager().findFragmentByTag(CURRENT_FRAGMENT_TAG);
+    }
+    // TODO(g-ortuno): Create abstract class to support various services without the need to cast
+    // their fragments.
+    mBluetoothGattService = ((BatteryServiceFragment) currentServiceFragment)
+        .getBluetoothGattService();
 
     mAdvSettings = new AdvertiseSettings.Builder()
         .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
@@ -220,16 +177,6 @@ public class Peripherals extends Activity {
         .setIncludeDeviceName(true)
         .setIncludeTxPowerLevel(true)
         .build();
-
-    mBatteryLevelCharacteristic =
-        new BluetoothGattCharacteristic(BATTERY_LEVEL_UUID,
-            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-            BluetoothGattCharacteristic.PERMISSION_READ);
-
-    mBatteryService = new BluetoothGattService(BATTERY_SERVICE_UUID,
-        BluetoothGattService.SERVICE_TYPE_PRIMARY);
-    mBatteryService.addCharacteristic(mBatteryLevelCharacteristic);
-    setBatteryLevel(INITIAL_BATTERY_LEVEL, null);
   }
 
   @Override
@@ -263,9 +210,9 @@ public class Peripherals extends Activity {
     // openGattServer() will return null.
     if (mAdvertiser != null && mGattServer != null) {
       resetStatusViews();
-      // Add a battery service for a total of three services (Generic Attribute and Generic Access
+      // Add a service for a total of three services (Generic Attribute and Generic Access
       // are present by default).
-      mGattServer.addService(mBatteryService);
+      mGattServer.addService(mBluetoothGattService);
       mAdvertiser.startAdvertising(mAdvSettings, mAdvData, mAdvCallback);
     } else {
       ensureBleFeaturesAvailable();
@@ -288,17 +235,6 @@ public class Peripherals extends Activity {
   private void resetStatusViews() {
     mAdvStatus.setText(R.string.status_notAdvertising);
     mConnectionStatus.setText(R.string.status_notConnected);
-  }
-
-  private void setBatteryLevel(int newBatteryLevel, View source) {
-    mBatteryLevelCharacteristic.setValue(newBatteryLevel,
-        BluetoothGattCharacteristic.FORMAT_UINT8, /* offset */ 0);
-    if (source != mBatteryLevelSeekBar) {
-      mBatteryLevelSeekBar.setProgress(newBatteryLevel);
-    }
-    if (source != mBatteryLevelEditText) {
-      mBatteryLevelEditText.setText(Integer.toString(newBatteryLevel));
-    }
   }
 
   ///////////////////////
