@@ -24,10 +24,10 @@ import android.widget.Toast;
 import java.util.Arrays;
 
 // TODO(g-ortuno): Change name to "Peripheral" or something more appropriate for it's new function.
-public class PeripheralBroadcaster extends Activity {
+public class Peripheral extends Activity {
 
   private static final int REQUEST_ENABLE_BT = 1;
-  private static final String TAG = PeripheralBroadcaster.class.getCanonicalName();
+  private static final String TAG = Peripheral.class.getCanonicalName();
   private static final String CURRENT_FRAGMENT_TAG = "CURRENT_FRAGMENT";
 
   private TextView mAdvStatus;

@@ -20,7 +20,7 @@
             </intent-filter>
         </activity>
         <activity
-                android:name=".PeripheralBroadcaster"
+                android:name=".Peripheral"
                 android:label="@string/title_activity_peripheral"
                 android:parentActivityName=".Peripherals"/>
     </application>
