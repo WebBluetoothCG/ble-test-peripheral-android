@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">BLE Test Peripheral</string>
-
+    <string name="title_activity_peripherals_list">Peripherals List</string>
+    <string name="title_activity_peripheral">Peripheral</string>
 
     <!-- Bluetooth -->
     <string name="bluetoothNotSupported">BLE Test Peripheral closing: Bluetooth Not Supported</string>

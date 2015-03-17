@@ -11,14 +11,18 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".Peripherals"
-            android:label="@string/app_name" >
+            android:name=".PeripheralsList"
+            android:label="@string/title_activity_peripherals_list" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+                android:name=".Peripherals"
+                android:label="@string/title_activity_peripheral"
+                android:parentActivityName=".PeripheralsList"/>
     </application>
 
 </manifest>
