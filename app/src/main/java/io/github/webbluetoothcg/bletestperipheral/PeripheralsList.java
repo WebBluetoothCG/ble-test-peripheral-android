@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 public class PeripheralsList extends ListActivity {
 
-  // TODO(g-ortuno): Add more services
+  // TODO(g-ortuno): Add more services.
   private static final String[] PERIPHERALS_NAMES = new String[]{"Battery"};
 
   @Override
@@ -30,7 +30,7 @@ public class PeripheralsList extends ListActivity {
     super.onListItemClick(l, v, position, id);
 
     Intent intent = new Intent(this, Peripherals.class);
-    // TODO(g-ortuno): Pass the selected peripheral to the peripheral activity
+    // TODO(g-ortuno): Pass the selected peripheral to the peripheral activity.
     startActivity(intent);
   }
 
