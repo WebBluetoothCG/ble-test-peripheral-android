@@ -10,8 +10,8 @@ import android.widget.ListView;
 
 public class PeripheralsList extends ListActivity {
 
-  // TODO(g-ortuno): Add more peripherals.
-  private static final String[] PERIPHERALS_NAMES = new String[]{"Battery"};
+  // TODO(g-ortuno): Implement heart rate monitor peripheral
+  private static final String[] PERIPHERALS_NAMES = new String[]{"Battery", "Heart Rate Monitor"};
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
