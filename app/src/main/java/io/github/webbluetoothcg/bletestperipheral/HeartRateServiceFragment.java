@@ -32,16 +32,17 @@ public class HeartRateServiceFragment extends ServiceFragment {
   private BluetoothGattCharacteristic mBodySensorLocationCharacteristic;
   private BluetoothGattService mHeartRateService;
 
-  private final OnItemSelectedListener mSpinnerOnItemSelectedListener = new OnItemSelectedListener() {
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-      setBodySensorLocationValue(position);
-    }
+  private final OnItemSelectedListener mLocationSpinnerOnItemSelectedListener =
+      new OnItemSelectedListener() {
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+          setBodySensorLocationValue(position);
+        }
 
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-    }
-  };
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
+        }
+      };
   public HeartRateServiceFragment() {
     mBodySensorLocationCharacteristic =
         new BluetoothGattCharacteristic(BODY_SENSOR_LOCATION_UUID,
@@ -61,7 +62,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
 
     View view = inflater.inflate(R.layout.fragment_heart_rate, container, false);
     Spinner spinner = (Spinner) view.findViewById(R.id.spinner_bodySensorLocation);
-    spinner.setOnItemSelectedListener(mSpinnerOnItemSelectedListener);
+    spinner.setOnItemSelectedListener(mLocationSpinnerOnItemSelectedListener);
 
     return view;
   }
