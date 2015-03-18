@@ -153,7 +153,7 @@ public class Peripheral extends Activity {
     ServiceFragment currentServiceFragment = null;
     if (savedInstanceState == null) {
       int peripheralIndex = getIntent().getIntExtra(Peripherals.EXTRA_PERIPHERAL_INDEX,
-          /* default */ 0);
+          /* default */ -1);
       if (peripheralIndex == 0) {
         currentServiceFragment = new BatteryServiceFragment();
       } else if (peripheralIndex == 1) {
