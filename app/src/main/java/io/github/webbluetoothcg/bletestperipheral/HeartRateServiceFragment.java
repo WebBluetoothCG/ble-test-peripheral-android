@@ -25,7 +25,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
    * Body Sensor Location</a>
    */
   private static final UUID BODY_SENSOR_LOCATION_UUID = UUID
-      .fromString("00002A37-0000-1000-8000-00805f9b34fb");
+      .fromString("00002A38-0000-1000-8000-00805f9b34fb");
   private static final int LOCATION_OTHER = 0;
 
   // TODO(g-ortuno): Implement Heart Rate Measurement and Heart Rate Control Point characteristics.
