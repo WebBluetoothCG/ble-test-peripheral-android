@@ -22,10 +22,13 @@
     <string name="status_notConnected">Not Connected to any devices</string>
     <string name="status_connectedTo">Connected to</string>
     <string name="errorCode">Error Code</string>
+
+    <!-- Batter Service -->
     <string name="batteryService_name">Battery Service</string>
     <string name="batteryLevelTooHigh">Batter Level shouldn\'t exceed 100</string>
     <string name="batteryLevelIncorrect">Please enter a number between 0 and 100</string>
 
-<!-- TODO(g-ortuno): Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!-- Hear Rate Service -->
+    <string name="label_bodySensorLocation">Body Sensor Location</string>
+    <string name="heartRateServiceName">Heart Rate Service</string>
 </resources>

@@ -4,10 +4,25 @@
              android:layout_height="match_parent"
              tools:context="io.github.webbluetoothcg.bletestperipheral.HeartRateServiceFragment">
 
-    <!-- TODO(g-ortuno): Replace with proper front end for service -->
     <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="@string/hello_blank_fragment"/>
-
+            android:id="@+id/textView_serviceName"
+            android:text="@string/heartRateServiceName"
+            android:textAppearance="@style/subheader"
+            android:gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"/>
+    <TextView
+            android:id="@+id/label_bodySensorLocation"
+            android:text="@string/label_bodySensorLocation"
+            android:textAppearance="@style/label"
+            android:layout_marginBottom="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textView_serviceName"/>
+    <Spinner
+            android:id="@+id/spinner_bodySensorLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/location_values"
+            android:layout_below="@id/label_bodySensorLocation"/>
 </RelativeLayout>

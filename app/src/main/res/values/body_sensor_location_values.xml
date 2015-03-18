@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="location_values">
+        <item>(0) Other</item>
+        <item>(1) Chest</item>
+        <item>(2) Wrist</item>
+        <item>(3) Finger</item>
+        <item>(4) Hand</item>
+        <item>(5) Ear Lobe</item>
+        <item>(6) Foot</item>
+    </string-array>
+</resources>
