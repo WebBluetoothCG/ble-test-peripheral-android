@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- From http://www.google.com/design/spec/style/color.html#color-color-palette -->
+    <!-- Teal 500 -->
+    <color name="primary">#009688</color>
+    <!-- Teal 700 -->
+    <color name="primary_dark">#00796B</color>
+    <!-- Cyan A700 -->
+    <color name="accent">#00B8D4</color>
+    <!-- From http://www.google.com/design/spec/style/color.html#color-ui-color-application -->
+    <!-- Seconday Text / Icons -->
+    <color name="secondary_text">#757575</color>
+</resources>
