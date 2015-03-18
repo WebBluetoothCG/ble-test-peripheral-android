@@ -1,3 +1,4 @@
+<!-- TODO(g-ortuno): Remove FragmentLayout since it's not necessary -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"

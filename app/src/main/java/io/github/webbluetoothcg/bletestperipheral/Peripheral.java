@@ -157,9 +157,7 @@ public class Peripheral extends Activity {
       if (peripheralIndex == 0) {
         currentServiceFragment = new BatteryServiceFragment();
       } else if (peripheralIndex == 1) {
-        // For now we use the battery service for both cases.
-        // TODO(g-ortuno): Implement Heart Rate Service and replace it in here.
-        currentServiceFragment = new BatteryServiceFragment();
+        currentServiceFragment = new HeartRateServiceFragment();
       } else {
         Log.wtf(TAG, "Service doesn't exist");
       }

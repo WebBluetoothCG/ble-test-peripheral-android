@@ -25,4 +25,7 @@
     <string name="batteryService_name">Battery Service</string>
     <string name="batteryLevelTooHigh">Batter Level shouldn\'t exceed 100</string>
     <string name="batteryLevelIncorrect">Please enter a number between 0 and 100</string>
+
+<!-- TODO(g-ortuno): Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
