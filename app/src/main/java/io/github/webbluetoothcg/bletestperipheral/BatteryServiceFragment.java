@@ -1,6 +1,5 @@
 package io.github.webbluetoothcg.bletestperipheral;
 
-import android.app.Fragment;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
@@ -19,7 +18,7 @@ import android.widget.Toast;
 import java.util.UUID;
 
 
-public class BatteryServiceFragment extends Fragment {
+public class BatteryServiceFragment extends ServiceFragment {
 
   ///////////////////////
   ////// Constants //////

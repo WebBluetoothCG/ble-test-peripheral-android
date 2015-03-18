@@ -12,6 +12,7 @@ public class Peripherals extends ListActivity {
 
   // TODO(g-ortuno): Implement heart rate monitor peripheral
   private static final String[] PERIPHERALS_NAMES = new String[]{"Battery", "Heart Rate Monitor"};
+  public final static String EXTRA_PERIPHERAL_INDEX = "PERIPHERAL_INDEX";
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +30,7 @@ public class Peripherals extends ListActivity {
     super.onListItemClick(l, v, position, id);
 
     Intent intent = new Intent(this, Peripheral.class);
-    // TODO(g-ortuno): Pass the selected peripheral to the peripheral activity.
+    intent.putExtra(EXTRA_PERIPHERAL_INDEX, position);
     startActivity(intent);
   }
 

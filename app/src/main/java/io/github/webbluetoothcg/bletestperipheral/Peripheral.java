@@ -1,7 +1,6 @@
 package io.github.webbluetoothcg.bletestperipheral;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -150,23 +149,29 @@ public class Peripheral extends Activity {
     ensureBleFeaturesAvailable();
 
     // If we are not being restored from a previous state then create and add the fragment.
-    Fragment currentServiceFragment;
+    // Initialize it to null otherwise the compiler complains.
+    ServiceFragment currentServiceFragment = null;
     if (savedInstanceState == null) {
-      // Here we can decide what device to show by changing which fragment we initialize.
-      // For now we only have Battery Service.
-      // TODO(g-ortuno): Add more services.
-      currentServiceFragment = new BatteryServiceFragment();
+      int peripheralIndex = getIntent().getIntExtra(Peripherals.EXTRA_PERIPHERAL_INDEX,
+          /* default */ -1);
+      if (peripheralIndex == 0) {
+        currentServiceFragment = new BatteryServiceFragment();
+      } else if (peripheralIndex == 1) {
+        // For now we use the battery service for both cases.
+        // TODO(g-ortuno): Implement Heart Rate Service and replace it in here.
+        currentServiceFragment = new BatteryServiceFragment();
+      } else {
+        Log.wtf(TAG, "Service doesn't exist");
+      }
       getFragmentManager()
           .beginTransaction()
           .add(R.id.fragment_container, currentServiceFragment, CURRENT_FRAGMENT_TAG)
           .commit();
     } else {
-      currentServiceFragment = getFragmentManager().findFragmentByTag(CURRENT_FRAGMENT_TAG);
+      currentServiceFragment = (ServiceFragment) getFragmentManager()
+          .findFragmentByTag(CURRENT_FRAGMENT_TAG);
     }
-    // TODO(g-ortuno): Create abstract class to support various services without the need to cast
-    // their fragments.
-    mBluetoothGattService = ((BatteryServiceFragment) currentServiceFragment)
-        .getBluetoothGattService();
+    mBluetoothGattService = currentServiceFragment.getBluetoothGattService();
 
     mAdvSettings = new AdvertiseSettings.Builder()
         .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
