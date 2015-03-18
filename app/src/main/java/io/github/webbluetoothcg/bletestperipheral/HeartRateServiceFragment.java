@@ -1,7 +1,6 @@
 package io.github.webbluetoothcg.bletestperipheral;
 
 
-import android.app.Fragment;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
@@ -11,10 +10,6 @@ import android.view.ViewGroup;
 
 import java.util.UUID;
 
-
-/**
- * A simple {@link Fragment} subclass.
- */
 public class HeartRateServiceFragment extends ServiceFragment {
 
   ///////////////////////
