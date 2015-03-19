@@ -21,8 +21,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Arrays;
+import java.util.HashSet;
 
-public class Peripheral extends Activity {
+import io.github.webbluetoothcg.bletestperipheral.ServiceFragment.ServiceFragmentDelegate;
+
+public class Peripheral extends Activity implements ServiceFragmentDelegate {
 
   private static final int REQUEST_ENABLE_BT = 1;
   private static final String TAG = Peripheral.class.getCanonicalName();
@@ -31,7 +34,7 @@ public class Peripheral extends Activity {
   private TextView mAdvStatus;
   private TextView mConnectionStatus;
   private BluetoothGattService mBluetoothGattService;
-
+  private HashSet<BluetoothDevice> mBluetoothDevices;
   private BluetoothManager mBluetoothManager;
   private BluetoothAdapter mBluetoothAdapter;
   private AdvertiseData mAdvData;
@@ -82,6 +85,7 @@ public class Peripheral extends Activity {
       super.onConnectionStateChange(device, status, newState);
       if (status == BluetoothGatt.GATT_SUCCESS) {
         if (newState == BluetoothGatt.STATE_CONNECTED) {
+          mBluetoothDevices.add(device);
           String deviceName = device.getName();
           // Some devices don't return a name.
           if (deviceName == null) {
@@ -96,6 +100,7 @@ public class Peripheral extends Activity {
           });
           Log.v(TAG, "Connected to device: " + device.getAddress());
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+          mBluetoothDevices.remove(device);
           runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -105,6 +110,7 @@ public class Peripheral extends Activity {
           Log.v(TAG, "Disconnected from device");
         }
       } else {
+        mBluetoothDevices.remove(device);
         // There are too many gatt errors (some of them not even in the documentation) so we just
         // show the error to the user.
         final String errorMessage = getString(R.string.errorCode) + ": " + status;
@@ -132,6 +138,12 @@ public class Peripheral extends Activity {
             null);
       }
     }
+
+    @Override
+    public void onNotificationSent(BluetoothDevice device, int status) {
+      super.onNotificationSent(device, status);
+      Log.v(TAG, "Notification sent. Status: " + status);
+    }
   };
 
   /////////////////////////////////
@@ -144,7 +156,7 @@ public class Peripheral extends Activity {
     setContentView(R.layout.activity_peripherals);
     mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
     mConnectionStatus = (TextView) findViewById(R.id.textView_connectionStatus);
-
+    mBluetoothDevices = new HashSet<>();
     // TODO(g-ortuno): This can be moved to Peripherals.
     ensureBleFeaturesAvailable();
 
@@ -235,6 +247,21 @@ public class Peripheral extends Activity {
     }
   }
 
+  @Override
+  public void sendNotificationToDevices(BluetoothGattCharacteristic characteristic) {
+    if (mBluetoothDevices.isEmpty()) {
+      Toast.makeText(this, R.string.bluetoothDeviceNotConnected, Toast.LENGTH_SHORT).show();
+    } else {
+      boolean indicate = (characteristic.getProperties()
+          & BluetoothGattCharacteristic.PROPERTY_INDICATE)
+          == BluetoothGattCharacteristic.PROPERTY_INDICATE;
+      for (BluetoothDevice device : mBluetoothDevices) {
+        // true for indication (acknowledge) and false for notification (unacknowledge).
+        mGattServer.notifyCharacteristicChanged(device, characteristic, indicate);
+      }
+    }
+  }
+
   private void resetStatusViews() {
     mAdvStatus.setText(R.string.status_notAdvertising);
     mConnectionStatus.setText(R.string.status_notConnected);
@@ -264,4 +291,5 @@ public class Peripheral extends Activity {
       mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
     }
   }
+
 }

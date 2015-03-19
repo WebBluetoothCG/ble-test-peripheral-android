@@ -1,13 +1,16 @@
 package io.github.webbluetoothcg.bletestperipheral;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -20,9 +23,6 @@ import java.util.UUID;
 
 public class BatteryServiceFragment extends ServiceFragment {
 
-  ///////////////////////
-  ////// Constants //////
-  ///////////////////////
   private static final UUID BATTERY_SERVICE_UUID = UUID
       .fromString("0000180F-0000-1000-8000-00805f9b34fb");
 
@@ -31,9 +31,8 @@ public class BatteryServiceFragment extends ServiceFragment {
   private static final int INITIAL_BATTERY_LEVEL = 50;
   private static final int BATTERY_LEVEL_MAX = 100;
 
-  ////////////////
-  ////// UI //////
-  ////////////////
+  private ServiceFragmentDelegate mDelegate;
+  // UI
   private EditText mBatteryLevelEditText;
   private final OnEditorActionListener mOnEditorActionListener = new OnEditorActionListener() {
     @Override
@@ -79,9 +78,14 @@ public class BatteryServiceFragment extends ServiceFragment {
     }
   };
 
-  //////////////////
-  ////// GATT //////
-  //////////////////
+  private final OnClickListener mNotifyButtonListener = new OnClickListener() {
+    @Override
+    public void onClick(View v) {
+      mDelegate.sendNotificationToDevices(mBatteryLevelCharacteristic);
+    }
+  };
+
+  // GATT
   private BluetoothGattService mBatteryService;
   private BluetoothGattCharacteristic mBatteryLevelCharacteristic;
 
@@ -96,9 +100,7 @@ public class BatteryServiceFragment extends ServiceFragment {
     mBatteryService.addCharacteristic(mBatteryLevelCharacteristic);
   }
 
-  /////////////////////////////////
-  ////// Lifecycle callback //////
-  /////////////////////////////////
+  // Lifecycle callbacks
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
@@ -109,9 +111,28 @@ public class BatteryServiceFragment extends ServiceFragment {
     mBatteryLevelEditText.setOnEditorActionListener(mOnEditorActionListener);
     mBatteryLevelSeekBar = (SeekBar) view.findViewById(R.id.seekBar_batteryLevel);
     mBatteryLevelSeekBar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+    Button notifyButton = (Button) view.findViewById(R.id.button_batteryLevelNotify);
+    notifyButton.setOnClickListener(mNotifyButtonListener);
 
     setBatteryLevel(INITIAL_BATTERY_LEVEL, null);
     return view;
+  }
+
+  @Override
+  public void onAttach(Activity activity) {
+    super.onAttach(activity);
+    try {
+      mDelegate = (ServiceFragmentDelegate) activity;
+    } catch (ClassCastException e) {
+      throw new ClassCastException(activity.toString()
+          + " must implement ServiceFragmentDelegate");
+    }
+  }
+
+  @Override
+  public void onDetach() {
+    super.onDetach();
+    mDelegate = null;
   }
 
   public BluetoothGattService getBluetoothGattService() {
@@ -128,5 +149,4 @@ public class BatteryServiceFragment extends ServiceFragment {
       mBatteryLevelEditText.setText(Integer.toString(newBatteryLevel));
     }
   }
-
 }
