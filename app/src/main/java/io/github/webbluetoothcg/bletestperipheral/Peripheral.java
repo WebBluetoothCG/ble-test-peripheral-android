@@ -252,11 +252,11 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     if (mBluetoothDevices.isEmpty()) {
       Toast.makeText(this, R.string.bluetoothDeviceNotConnected, Toast.LENGTH_SHORT).show();
     } else {
+      boolean indicate = (characteristic.getProperties()
+          & BluetoothGattCharacteristic.PROPERTY_INDICATE)
+          == BluetoothGattCharacteristic.PROPERTY_INDICATE;
       for (BluetoothDevice device : mBluetoothDevices) {
         // true for indication (acknowledge) and false for notification (unacknowledge).
-        boolean indicate = (characteristic.getProperties()
-            & BluetoothGattCharacteristic.PROPERTY_INDICATE)
-            == BluetoothGattCharacteristic.PROPERTY_INDICATE;
         mGattServer.notifyCharacteristicChanged(device, characteristic, indicate);
       }
     }
