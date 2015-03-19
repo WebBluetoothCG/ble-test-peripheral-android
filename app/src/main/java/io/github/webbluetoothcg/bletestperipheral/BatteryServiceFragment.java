@@ -151,5 +151,4 @@ public class BatteryServiceFragment extends ServiceFragment {
       mBatteryLevelEditText.setText(Integer.toString(newBatteryLevel));
     }
   }
-
 }
