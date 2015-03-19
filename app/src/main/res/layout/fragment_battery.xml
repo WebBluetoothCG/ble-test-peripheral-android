@@ -39,5 +39,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
         </LinearLayout>
+        <Button
+
+                android:textColor="@color/accent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/notify"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@id/batteryLevel"/>
     </RelativeLayout>
 </FrameLayout>
