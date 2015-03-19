@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Arrays;
+import java.util.HashSet;
 
 public class Peripheral extends Activity implements ServiceFragment.OnFragmentInteractionListener{
 
@@ -31,7 +32,7 @@ public class Peripheral extends Activity implements ServiceFragment.OnFragmentIn
   private TextView mAdvStatus;
   private TextView mConnectionStatus;
   private BluetoothGattService mBluetoothGattService;
-  private BluetoothDevice mBluetoothDevice;
+  private HashSet<BluetoothDevice> mBluetoothDevices;
   private BluetoothManager mBluetoothManager;
   private BluetoothAdapter mBluetoothAdapter;
   private AdvertiseData mAdvData;
@@ -82,11 +83,11 @@ public class Peripheral extends Activity implements ServiceFragment.OnFragmentIn
       super.onConnectionStateChange(device, status, newState);
       if (status == BluetoothGatt.GATT_SUCCESS) {
         if (newState == BluetoothGatt.STATE_CONNECTED) {
-          mBluetoothDevice = device;
-          String deviceName = mBluetoothDevice.getName();
+          mBluetoothDevices.add(device);
+          String deviceName = device.getName();
           // Some devices don't return a name.
           if (deviceName == null) {
-            deviceName = mBluetoothDevice.getAddress();
+            deviceName = device.getAddress();
           }
           final String message = getString(R.string.status_connectedTo) + " " + deviceName;
           runOnUiThread(new Runnable() {
@@ -95,9 +96,9 @@ public class Peripheral extends Activity implements ServiceFragment.OnFragmentIn
               mConnectionStatus.setText(message);
             }
           });
-          Log.v(TAG, "Connected to device: " + mBluetoothDevice.getAddress());
+          Log.v(TAG, "Connected to device: " + device.getAddress());
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-          mBluetoothDevice = null;
+          mBluetoothDevices.remove(device);
           runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -107,7 +108,7 @@ public class Peripheral extends Activity implements ServiceFragment.OnFragmentIn
           Log.v(TAG, "Disconnected from device");
         }
       } else {
-        mBluetoothDevice = null;
+        mBluetoothDevices.remove(device);
         // There are too many gatt errors (some of them not even in the documentation) so we just
         // show the error to the user.
         final String errorMessage = getString(R.string.errorCode) + ": " + status;
@@ -153,7 +154,7 @@ public class Peripheral extends Activity implements ServiceFragment.OnFragmentIn
     setContentView(R.layout.activity_peripherals);
     mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
     mConnectionStatus = (TextView) findViewById(R.id.textView_connectionStatus);
-
+    mBluetoothDevices = new HashSet<>();
     // TODO(g-ortuno): This can be moved to Peripherals.
     ensureBleFeaturesAvailable();
 
@@ -246,14 +247,16 @@ public class Peripheral extends Activity implements ServiceFragment.OnFragmentIn
 
   @Override
   public void onNotifyButtonPressed(BluetoothGattCharacteristic characteristic) {
-    if (mBluetoothDevice != null) {
-      mGattServer.notifyCharacteristicChanged(mBluetoothDevice, characteristic,
-          // true for indication (acknowledge) and false for notification (unacknowledge).
-          // In this case there is no callback for us to receive the acknowledgement from
-          // the client so we just send a notification.
-          false);
-    } else {
+    if (mBluetoothDevices.isEmpty()) {
       Toast.makeText(this, R.string.bluetoothDeviceNotConnected, Toast.LENGTH_SHORT).show();
+    } else {
+      for (BluetoothDevice device : mBluetoothDevices) {
+        // true for indication (acknowledge) and false for notification (unacknowledge).
+        boolean indicate = (characteristic.getProperties()
+            & BluetoothGattCharacteristic.PROPERTY_INDICATE)
+            == BluetoothGattCharacteristic.PROPERTY_INDICATE;
+        mGattServer.notifyCharacteristicChanged(device, characteristic, indicate);
+      }
     }
   }
 
