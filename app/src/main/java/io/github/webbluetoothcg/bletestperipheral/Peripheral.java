@@ -23,7 +23,9 @@ import android.widget.Toast;
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class Peripheral extends Activity implements ServiceFragment.ServiceFragmentUpcalls {
+import io.github.webbluetoothcg.bletestperipheral.ServiceFragment.ServiceFragmentDelegate;
+
+public class Peripheral extends Activity implements ServiceFragmentDelegate {
 
   private static final int REQUEST_ENABLE_BT = 1;
   private static final String TAG = Peripheral.class.getCanonicalName();
@@ -246,7 +248,7 @@ public class Peripheral extends Activity implements ServiceFragment.ServiceFragm
   }
 
   @Override
-  public void sendNotificationToDevice(BluetoothGattCharacteristic characteristic) {
+  public void sendNotificationToDevices(BluetoothGattCharacteristic characteristic) {
     if (mBluetoothDevices.isEmpty()) {
       Toast.makeText(this, R.string.bluetoothDeviceNotConnected, Toast.LENGTH_SHORT).show();
     } else {
