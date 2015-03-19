@@ -248,9 +248,9 @@ public class Peripheral extends Activity implements ServiceFragment.OnFragmentIn
   public void onNotifyButtonPressed(BluetoothGattCharacteristic characteristic) {
     if (mBluetoothDevice != null) {
       mGattServer.notifyCharacteristicChanged(mBluetoothDevice, characteristic,
-          // true for indication (acknowledge) and false for notification (unacknowledge)
-          // In this case there is not callback for us to receive the acknowledgement from
-          // the client to we just set it to false.
+          // true for indication (acknowledge) and false for notification (unacknowledge).
+          // In this case there is no callback for us to receive the acknowledgement from
+          // the client so we just send a notification.
           false);
     } else {
       Toast.makeText(this, R.string.bluetoothDeviceNotConnected, Toast.LENGTH_SHORT).show();
