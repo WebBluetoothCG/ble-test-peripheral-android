@@ -22,7 +22,7 @@ import android.widget.Toast;
 
 import java.util.Arrays;
 
-public class Peripheral extends Activity {
+public class Peripheral extends Activity implements OnFragmentInteractionListener{
 
   private static final int REQUEST_ENABLE_BT = 1;
   private static final String TAG = Peripheral.class.getCanonicalName();
@@ -31,7 +31,7 @@ public class Peripheral extends Activity {
   private TextView mAdvStatus;
   private TextView mConnectionStatus;
   private BluetoothGattService mBluetoothGattService;
-
+  private BluetoothDevice mBluetoothDevice;
   private BluetoothManager mBluetoothManager;
   private BluetoothAdapter mBluetoothAdapter;
   private AdvertiseData mAdvData;
@@ -82,10 +82,11 @@ public class Peripheral extends Activity {
       super.onConnectionStateChange(device, status, newState);
       if (status == BluetoothGatt.GATT_SUCCESS) {
         if (newState == BluetoothGatt.STATE_CONNECTED) {
-          String deviceName = device.getName();
+          mBluetoothDevice = device;
+          String deviceName = mBluetoothDevice.getName();
           // Some devices don't return a name.
           if (deviceName == null) {
-            deviceName = device.getAddress();
+            deviceName = mBluetoothDevice.getAddress();
           }
           final String message = getString(R.string.status_connectedTo) + " " + deviceName;
           runOnUiThread(new Runnable() {
@@ -94,8 +95,9 @@ public class Peripheral extends Activity {
               mConnectionStatus.setText(message);
             }
           });
-          Log.v(TAG, "Connected to device: " + device.getAddress());
+          Log.v(TAG, "Connected to device: " + mBluetoothDevice.getAddress());
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+          mBluetoothDevice = null;
           runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -105,6 +107,7 @@ public class Peripheral extends Activity {
           Log.v(TAG, "Disconnected from device");
         }
       } else {
+        mBluetoothDevice = null;
         // There are too many gatt errors (some of them not even in the documentation) so we just
         // show the error to the user.
         final String errorMessage = getString(R.string.errorCode) + ": " + status;
@@ -235,6 +238,19 @@ public class Peripheral extends Activity {
     }
   }
 
+  @Override
+  public void onNotifyButtonPressed(BluetoothGattCharacteristic characteristic) {
+    if (mBluetoothDevice != null) {
+      mGattServer.notifyCharacteristicChanged(mBluetoothDevice, characteristic,
+          // true for indication (acknowledge) and false for notification (unacknowledge)
+          // In this case there is not callback for us to receive the acknowledgement from
+          // the client to we just set it to false.
+          false);
+    } else {
+      Toast.makeText(this, R.string.bluetoothDeviceNotConnected, Toast.LENGTH_SHORT).show();
+    }
+  }
+
   private void resetStatusViews() {
     mAdvStatus.setText(R.string.status_notAdvertising);
     mConnectionStatus.setText(R.string.status_notConnected);
@@ -264,4 +280,5 @@ public class Peripheral extends Activity {
       mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
     }
   }
+
 }

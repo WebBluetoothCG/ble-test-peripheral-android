@@ -8,6 +8,7 @@
     <string name="bluetoothNotSupported">BLE Test Peripheral closing: Bluetooth Not Supported</string>
     <string name="bluetoothNotEnabled">BLE Test Peripheral closing: Bluetooth is Not Enabled</string>
     <string name="bluetoothAdvertisingNotSupported">BLE Test Peripheral closing: BLE Advertising Not Supported</string>
+    <string name="bluetoothDeviceNotConnected">Not connected to any Devices</string>
 
     <!-- Adv -->
     <string name="label_advertisingStatus">Advertising Status</string>
