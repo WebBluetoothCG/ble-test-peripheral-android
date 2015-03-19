@@ -23,7 +23,7 @@ import android.widget.Toast;
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class Peripheral extends Activity implements ServiceFragment.OnFragmentInteractionListener{
+public class Peripheral extends Activity implements ServiceFragment.ServiceFragmentUpcalls {
 
   private static final int REQUEST_ENABLE_BT = 1;
   private static final String TAG = Peripheral.class.getCanonicalName();
@@ -246,7 +246,7 @@ public class Peripheral extends Activity implements ServiceFragment.OnFragmentIn
   }
 
   @Override
-  public void onNotifyButtonPressed(BluetoothGattCharacteristic characteristic) {
+  public void sendNotificationToDevice(BluetoothGattCharacteristic characteristic) {
     if (mBluetoothDevices.isEmpty()) {
       Toast.makeText(this, R.string.bluetoothDeviceNotConnected, Toast.LENGTH_SHORT).show();
     } else {

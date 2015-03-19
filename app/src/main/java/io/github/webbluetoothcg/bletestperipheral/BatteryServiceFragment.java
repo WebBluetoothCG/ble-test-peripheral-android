@@ -31,7 +31,7 @@ public class BatteryServiceFragment extends ServiceFragment {
   private static final int INITIAL_BATTERY_LEVEL = 50;
   private static final int BATTERY_LEVEL_MAX = 100;
 
-  private OnFragmentInteractionListener mListener;
+  private ServiceFragmentUpcalls mUpcalls;
   // UI
   private EditText mBatteryLevelEditText;
   private final OnEditorActionListener mOnEditorActionListener = new OnEditorActionListener() {
@@ -81,8 +81,8 @@ public class BatteryServiceFragment extends ServiceFragment {
   private final OnClickListener mNotifyButtonListener = new OnClickListener() {
     @Override
     public void onClick(View v) {
-      if (mListener != null) {
-        mListener.onNotifyButtonPressed(mBatteryLevelCharacteristic);
+      if (mUpcalls != null) {
+        mUpcalls.sendNotificationToDevice(mBatteryLevelCharacteristic);
       }
     }
   };
@@ -124,17 +124,17 @@ public class BatteryServiceFragment extends ServiceFragment {
   public void onAttach(Activity activity) {
     super.onAttach(activity);
     try {
-      mListener = (OnFragmentInteractionListener) activity;
+      mUpcalls = (ServiceFragmentUpcalls) activity;
     } catch (ClassCastException e) {
       throw new ClassCastException(activity.toString()
-          + " must implement OnFragmentInteractionListener");
+          + " must implement ServiceFragmentUpcalls");
     }
   }
 
   @Override
   public void onDetach() {
     super.onDetach();
-    mListener = null;
+    mUpcalls = null;
   }
 
   public BluetoothGattService getBluetoothGattService() {
