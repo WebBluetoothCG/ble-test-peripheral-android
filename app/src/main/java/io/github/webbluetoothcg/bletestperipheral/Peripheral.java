@@ -22,7 +22,7 @@ import android.widget.Toast;
 
 import java.util.Arrays;
 
-public class Peripheral extends Activity implements OnFragmentInteractionListener{
+public class Peripheral extends Activity implements ServiceFragment.OnFragmentInteractionListener{
 
   private static final int REQUEST_ENABLE_BT = 1;
   private static final String TAG = Peripheral.class.getCanonicalName();
@@ -134,6 +134,12 @@ public class Peripheral extends Activity implements OnFragmentInteractionListene
         mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_INVALID_OFFSET, offset,
             null);
       }
+    }
+
+    @Override
+    public void onNotificationSent(BluetoothDevice device, int status) {
+      super.onNotificationSent(device, status);
+      Log.v(TAG, "Notification sent. Status: " + status);
     }
   };
 
