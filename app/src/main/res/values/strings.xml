@@ -33,4 +33,6 @@
     <!-- Hear Rate Service -->
     <string name="label_bodySensorLocation">Body Sensor Location</string>
     <string name="heartRateServiceName">Heart Rate Service</string>
+    <string name="label_heartRateMeasurementValue">Heart Rate</string>
+    <string name="label_energyExpended">Energy Expended</string>
 </resources>

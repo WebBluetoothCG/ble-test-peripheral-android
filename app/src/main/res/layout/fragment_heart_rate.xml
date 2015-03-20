@@ -15,7 +15,6 @@
             android:id="@+id/label_bodySensorLocation"
             android:text="@string/label_bodySensorLocation"
             android:textAppearance="@style/label"
-            android:layout_marginBottom="8dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/textView_serviceName"/>
@@ -24,5 +23,51 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:entries="@array/location_values"
-            android:layout_below="@id/label_bodySensorLocation"/>
+            android:layout_alignTop="@+id/editText_heartRateMeasurementValue"
+            android:layout_alignBottom="@id/editText_heartRateMeasurementValue"/>
+    <TextView
+            android:id="@+id/label_heartRateMeasurementValue"
+            android:text="@string/label_heartRateMeasurementValue"
+            android:textAppearance="@style/label"
+            android:layout_marginStart="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/spinner_bodySensorLocation"
+            android:layout_below="@id/textView_serviceName"/>
+    <EditText
+            android:id="@id/editText_heartRateMeasurementValue"
+            android:ems="3"
+            android:maxLength="3"
+            android:gravity="center"
+            android:inputType="number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@id/label_heartRateMeasurementValue"
+            android:layout_below="@id/label_heartRateMeasurementValue"/>
+    <TextView
+            android:id="@+id/label_energyExpended"
+            android:text="@string/label_energyExpended"
+            android:textAppearance="@style/label"
+            android:layout_marginStart="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/editText_heartRateMeasurementValue"
+            android:layout_below="@id/textView_serviceName"/>
+    <EditText
+            android:id="@+id/editText_energyExpended"
+            android:ems="4"
+            android:maxLength="5"
+            android:gravity="center"
+            android:inputType="number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@id/label_energyExpended"
+            android:layout_below="@id/label_heartRateMeasurementValue"/>
+    <Button
+            android:id="@+id/button_heartRateMeasurementNotify"
+            android:textColor="@color/accent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/notify"
+            android:layout_below="@id/spinner_bodySensorLocation"/>
 </RelativeLayout>
