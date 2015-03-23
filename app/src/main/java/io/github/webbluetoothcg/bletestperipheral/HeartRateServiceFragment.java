@@ -20,6 +20,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
    */
   private static final UUID HEART_RATE_SERVICE_UUID = UUID
       .fromString("0000180D-0000-1000-8000-00805f9b34fb");
+
   /**
    * See <a href="https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.body_sensor_location.xml">
    * Body Sensor Location</a>
@@ -28,10 +29,17 @@ public class HeartRateServiceFragment extends ServiceFragment {
       .fromString("00002A38-0000-1000-8000-00805f9b34fb");
   private static final int LOCATION_OTHER = 0;
 
+  /**
+   * See <a href="https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_control_point.xml">
+   * Heart Rate Control Point</a>
+   */
+  private static final UUID HEART_RATE_CONTORL_POINT_UUID = UUID
+      .fromString("00002A39-0000-1000-8000-00805f9b34fb");
+
   // TODO(g-ortuno): Implement Heart Rate Measurement and Heart Rate Control Point characteristics.
+  private BluetoothGattCharacteristic mHeartRateControlPoint;
   private BluetoothGattCharacteristic mBodySensorLocationCharacteristic;
   private BluetoothGattService mHeartRateService;
-
   private final OnItemSelectedListener mLocationSpinnerOnItemSelectedListener =
       new OnItemSelectedListener() {
         @Override
@@ -50,9 +58,15 @@ public class HeartRateServiceFragment extends ServiceFragment {
             BluetoothGattCharacteristic.PERMISSION_READ);
     setBodySensorLocationValue(LOCATION_OTHER);
 
+    mHeartRateControlPoint =
+        new BluetoothGattCharacteristic(HEART_RATE_CONTORL_POINT_UUID,
+            BluetoothGattCharacteristic.PROPERTY_WRITE,
+            BluetoothGattCharacteristic.PERMISSION_WRITE);
+
     mHeartRateService = new BluetoothGattService(HEART_RATE_SERVICE_UUID,
         BluetoothGattService.SERVICE_TYPE_PRIMARY);
     mHeartRateService.addCharacteristic(mBodySensorLocationCharacteristic);
+    mHeartRateService.addCharacteristic(mHeartRateControlPoint);
   }
 
 
@@ -74,5 +88,16 @@ public class HeartRateServiceFragment extends ServiceFragment {
 
   private void setBodySensorLocationValue(int location) {
     mBodySensorLocationCharacteristic.setValue(new byte[]{(byte) location});
+  }
+
+  @Override
+  public int writeCharacteristic(BluetoothGattCharacteristic characteristic, byte[] value) {
+    // Heart Rate control point is a 8bit characteristic
+    if (value.length == 1) {
+      if ((value[0] & 1) == 1) {
+        // TODO(g-ortuno): Reset UI
+        // TODO(g-ortuno): Reset Value in Heart Rate Measurement
+      }
+    }
   }
 }
