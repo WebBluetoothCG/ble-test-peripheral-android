@@ -35,4 +35,8 @@
     <string name="heartRateServiceName">Heart Rate Service</string>
     <string name="label_heartRateMeasurementValue">Heart Rate</string>
     <string name="label_energyExpended">Energy Expended</string>
+    <string name="heartRateMeasurementValueTooHigh">Heart Rate shouldn\'t exceed 255</string>
+    <string name="heartRateMeasurementValueInvalid">Please enter a number between 0 and 255</string>
+    <string name="energyExpendedTooHigh">Energy Expended shouldn\'t exceed 65,535</string>
+    <string name="energyExpendedInvalid">Please pick a number between 0 and 65,535</string>
 </resources>
