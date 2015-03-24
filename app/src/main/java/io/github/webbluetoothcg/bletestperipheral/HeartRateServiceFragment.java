@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -26,6 +25,9 @@ import java.util.UUID;
 
 public class HeartRateServiceFragment extends ServiceFragment {
   private static final String TAG = HeartRateServiceFragment.class.getCanonicalName();
+  private static final int MIN_UINT = 0;
+  private static final int MAX_UINT8 = (int) Math.pow(2, 8) - 1;
+  private static final int MAX_UINT16 = (int) Math.pow(2, 16) - 1;
   /**
    * See <a href="https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.heart_rate.xml">
    * Heart Rate Service</a>
@@ -38,13 +40,10 @@ public class HeartRateServiceFragment extends ServiceFragment {
    */
   private static final UUID HEART_RATE_MEASUREMENT_UUID = UUID
       .fromString("00002A37-0000-1000-8000-00805f9b34fb");
-
+  private static final int HEART_RATE_MEASUREMENT_VALUE_FORMAT = BluetoothGattCharacteristic.FORMAT_UINT8;
   private static final int INITIAL_HEART_RATE_MEASUREMENT_VALUE = 60;
-  // Max value of uint8
-  private static final int MAX_HEART_RATE_MEASUREMENT_VALUE = 255;
+  private static final int EXPENDED_ENERGY_FORMAT = BluetoothGattCharacteristic.FORMAT_UINT16;
   private static final int INITIAL_EXPENDED_ENERGY = 0;
-  // Max value of uint16
-  private static final int MAX_ENERGY_EXPENDED = 65535;
   /**
    * See <a href="https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.body_sensor_location.xml">
    * Body Sensor Location</a>
@@ -66,19 +65,12 @@ public class HeartRateServiceFragment extends ServiceFragment {
     public boolean onEditorAction(TextView textView, int actionId, KeyEvent event) {
       if (actionId == EditorInfo.IME_ACTION_DONE) {
         String newHeartRateMeasurementValueString = textView.getText().toString();
-        // Need to check if the string is empty since isDigitsOnly returns
-        // true for empty strings.
-        if (!newHeartRateMeasurementValueString.isEmpty()
-            && TextUtils.isDigitsOnly(newHeartRateMeasurementValueString)) {
+        if (isValidCharacteristicValue(newHeartRateMeasurementValueString,
+            HEART_RATE_MEASUREMENT_VALUE_FORMAT)) {
           int newHeartRateMeasurementValue = Integer.parseInt(newHeartRateMeasurementValueString);
-          if (newHeartRateMeasurementValue <= MAX_HEART_RATE_MEASUREMENT_VALUE) {
-            mHeartRateMeasurementCharacteristic.setValue(newHeartRateMeasurementValue,
-                BluetoothGattCharacteristic.FORMAT_UINT8,
-                /* offset */ 1);
-          } else {
-            Toast.makeText(getActivity(), R.string.heartRateMeasurementValueTooHigh,
-                Toast.LENGTH_SHORT).show();
-          }
+          mHeartRateMeasurementCharacteristic.setValue(newHeartRateMeasurementValue,
+              HEART_RATE_MEASUREMENT_VALUE_FORMAT,
+              /* offset */ 1);
         } else {
           Toast.makeText(getActivity(), R.string.heartRateMeasurementValueInvalid,
               Toast.LENGTH_SHORT).show();
@@ -87,24 +79,18 @@ public class HeartRateServiceFragment extends ServiceFragment {
       return false;
     }
   };
+
   private final OnEditorActionListener mOnEditorActionListenerEnergyExpended = new OnEditorActionListener() {
     @Override
     public boolean onEditorAction(TextView textView, int actionId, KeyEvent event) {
       if (actionId == EditorInfo.IME_ACTION_DONE) {
         String newEnergyExpendedString = textView.getText().toString();
-        // Need to check if the string is empty since isDigitsOnly returns
-        // true for empty strings.
-        if (!newEnergyExpendedString.isEmpty()
-            && TextUtils.isDigitsOnly(newEnergyExpendedString)) {
+        if (isValidCharacteristicValue(newEnergyExpendedString,
+            EXPENDED_ENERGY_FORMAT)) {
           int newEnergyExpended = Integer.parseInt(newEnergyExpendedString);
-          if (newEnergyExpended <= MAX_ENERGY_EXPENDED) {
-            mHeartRateMeasurementCharacteristic.setValue(newEnergyExpended,
-                BluetoothGattCharacteristic.FORMAT_UINT16,
-                /* offset */ 2);
-          } else {
-            Toast.makeText(getActivity(), R.string.energyExpendedTooHigh,
-                Toast.LENGTH_SHORT).show();
-          }
+          mHeartRateMeasurementCharacteristic.setValue(newEnergyExpended,
+              EXPENDED_ENERGY_FORMAT,
+              /* offset */ 2);
         } else {
           Toast.makeText(getActivity(), R.string.energyExpendedInvalid,
               Toast.LENGTH_SHORT).show();
@@ -201,31 +187,49 @@ public class HeartRateServiceFragment extends ServiceFragment {
   private void setHeartRateMeasurementValue(int heartRateMeasurementValue, int expendedEnergy) {
 
     Log.d(TAG, Arrays.toString(mHeartRateMeasurementCharacteristic.getValue()));
-    /* Set the characteristic to a byte array of size 4 so
+    /* Set the org.bluetooth.characteristic.heart_rate_measurement
+     * characteristic to a byte array of size 4 so
      * we can use setValue(value, format, offset);
+     *
      * Flags (8bit) + Heart Rate Measurement Value (uint8) + Energy Expended (uint16) = 4 bytes
      *
      * Flags = 1 << 3:
-     * Heart Rate Format (0) -> UINT8
-     * Sensor Contact Status (00) -> Not Supported
-     * Energy Expended (1) -> Field Present
-     * RR-Interval (0) -> Field not pressent
+     *   Heart Rate Format (0) -> UINT8
+     *   Sensor Contact Status (00) -> Not Supported
+     *   Energy Expended (1) -> Field Present
+     *   RR-Interval (0) -> Field not pressent
+     *   Unused (000)
      */
-    mHeartRateMeasurementCharacteristic.setValue(new byte[]{1 << 3, 0, 0, 0});
-    // Characteristic Value: [8, 0, 0, 0]
+    mHeartRateMeasurementCharacteristic.setValue(new byte[]{0b00001000, 0, 0, 0});
+    // Characteristic Value: [flags, 0, 0, 0]
     mHeartRateMeasurementCharacteristic.setValue(heartRateMeasurementValue,
-        BluetoothGattCharacteristic.FORMAT_UINT8,
+        HEART_RATE_MEASUREMENT_VALUE_FORMAT,
         /* offset */ 1);
-    // Characteristic Value: [8, 60, 0, 0]
+    // Characteristic Value: [flags, heart rate value, 0, 0]
     mEditTextHeartRateMeasurement.setText(Integer.toString(heartRateMeasurementValue));
     mHeartRateMeasurementCharacteristic.setValue(expendedEnergy,
-        BluetoothGattCharacteristic.FORMAT_UINT16,
+        EXPENDED_ENERGY_FORMAT,
         /* offset */ 2);
-    // Characteristic Value: [8, 60, 0, 0]
+    // Characteristic Value: [flags, heart rate value, energy expended (LSB), energy expended (MSB)]
     mEditTextEnergyExpended.setText(Integer.toString(expendedEnergy));
   }
   private void setBodySensorLocationValue(int location) {
     mBodySensorLocationCharacteristic.setValue(new byte[]{(byte) location});
     mSpinnerBodySensorLocation.setSelection(location);
+  }
+
+  private boolean isValidCharacteristicValue(String s, int format) {
+    try {
+      int value = Integer.parseInt(s);
+      if (format == BluetoothGattCharacteristic.FORMAT_UINT8) {
+        return (value >= MIN_UINT) && (value <= MAX_UINT8);
+      } else if (format == BluetoothGattCharacteristic.FORMAT_UINT16) {
+        return (value >= MIN_UINT) && (value <= MAX_UINT16);
+      } else {
+        throw new IllegalArgumentException(format + " is not a valid argument");
+      }
+    } catch (NumberFormatException e) {
+      return false;
+    }
   }
 }
