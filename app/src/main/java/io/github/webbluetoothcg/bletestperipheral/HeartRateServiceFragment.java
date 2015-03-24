@@ -69,7 +69,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
         // Need to check if the string is empty since isDigitsOnly returns
         // true for empty strings.
         if (!newHeartRateMeasurementValueString.isEmpty()
-            && android.text.TextUtils.isDigitsOnly(newHeartRateMeasurementValueString)) {
+            && TextUtils.isDigitsOnly(newHeartRateMeasurementValueString)) {
           int newHeartRateMeasurementValue = Integer.parseInt(newHeartRateMeasurementValueString);
           if (newHeartRateMeasurementValue <= MAX_HEART_RATE_MEASUREMENT_VALUE) {
             mHeartRateMeasurementCharacteristic.setValue(newHeartRateMeasurementValue,
@@ -206,10 +206,10 @@ public class HeartRateServiceFragment extends ServiceFragment {
      * Flags (8bit) + Heart Rate Measurement Value (uint8) + Energy Expended (uint16) = 4 bytes
      *
      * Flags = 1 << 3:
-     * Heart Rate Format (1 bit) -> UINT8
-     * Sensor Contact Status (2 bits) -> Not Supported
-     * Energy Expended (1 bit) -> Field Present
-     * RR-Interval (1 bit) -> Field not pressent
+     * Heart Rate Format (0) -> UINT8
+     * Sensor Contact Status (00) -> Not Supported
+     * Energy Expended (1) -> Field Present
+     * RR-Interval (0) -> Field not pressent
      */
     mHeartRateMeasurementCharacteristic.setValue(new byte[]{1 << 3, 0, 0, 0});
     // Characteristic Value: [8, 0, 0, 0]
