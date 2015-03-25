@@ -1,6 +1,7 @@
 package io.github.webbluetoothcg.bletestperipheral;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
@@ -251,11 +252,21 @@ public class HeartRateServiceFragment extends ServiceFragment {
   @Override
   public int writeCharacteristic(BluetoothGattCharacteristic characteristic, byte[] value) {
     // Heart Rate control point is a 8bit characteristic
-    if (value.length == 1) {
-      if ((value[0] & 1) == 1) {
-        // TODO(g-ortuno): Reset UI
-        // TODO(g-ortuno): Reset Value in Heart Rate Measurement
-      }
+    if (value.length != 1) {
+      return BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
     }
+    if ((value[0] & 1) == 1) {
+
+      mHeartRateMeasurementCharacteristic.setValue(INITIAL_EXPENDED_ENERGY,
+          EXPENDED_ENERGY_FORMAT,
+        /* offset */ 2);
+      getActivity().runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          mEditTextEnergyExpended.setText(Integer.toString(INITIAL_EXPENDED_ENERGY));
+        }
+      });
+    }
+    return BluetoothGatt.GATT_SUCCESS;
   }
 }
