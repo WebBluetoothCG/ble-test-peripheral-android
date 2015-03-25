@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +20,6 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 public class HeartRateServiceFragment extends ServiceFragment {
@@ -64,7 +62,6 @@ public class HeartRateServiceFragment extends ServiceFragment {
   private BluetoothGattService mHeartRateService;
   private BluetoothGattCharacteristic mHeartRateMeasurementCharacteristic;
   private BluetoothGattCharacteristic mBodySensorLocationCharacteristic;
-  private BluetoothGattCharacteristic mHeartRateControlPoint;
 
   private ServiceFragmentDelegate mDelegate;
 
@@ -97,9 +94,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
         if (isValidCharacteristicValue(newEnergyExpendedString,
             EXPENDED_ENERGY_FORMAT)) {
           int newEnergyExpended = Integer.parseInt(newEnergyExpendedString);
-          mHeartRateMeasurementCharacteristic.setValue(newEnergyExpended,
-              EXPENDED_ENERGY_FORMAT,
-              /* offset */ 2);
+          setHeartRateMeasurementExpendedEnergy(newEnergyExpended, /* fromEditText */ true);
         } else {
           Toast.makeText(getActivity(), R.string.energyExpendedInvalid,
               Toast.LENGTH_SHORT).show();
@@ -141,7 +136,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
             BluetoothGattCharacteristic.PROPERTY_READ,
             BluetoothGattCharacteristic.PERMISSION_READ);
 
-    mHeartRateControlPoint =
+    BluetoothGattCharacteristic heartRateControlPoint =
         new BluetoothGattCharacteristic(HEART_RATE_CONTROL_POINT_UUID,
             BluetoothGattCharacteristic.PROPERTY_WRITE,
             BluetoothGattCharacteristic.PERMISSION_WRITE);
@@ -150,7 +145,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
         BluetoothGattService.SERVICE_TYPE_PRIMARY);
     mHeartRateService.addCharacteristic(mHeartRateMeasurementCharacteristic);
     mHeartRateService.addCharacteristic(mBodySensorLocationCharacteristic);
-    mHeartRateService.addCharacteristic(mHeartRateControlPoint);
+    mHeartRateService.addCharacteristic(heartRateControlPoint);
   }
 
 
@@ -172,8 +167,12 @@ public class HeartRateServiceFragment extends ServiceFragment {
     Button notifyButton = (Button) view.findViewById(R.id.button_heartRateMeasurementNotify);
     notifyButton.setOnClickListener(mNotifyButtonListener);
 
-    setHeartRateMeasurementValue(INITIAL_HEART_RATE_MEASUREMENT_VALUE,
-        INITIAL_EXPENDED_ENERGY);
+    setHeartRateMeasurementFlags();
+    // Characteristic Value: [flags, 0, 0, 0]
+    setHeartRateMeasurementValue(INITIAL_HEART_RATE_MEASUREMENT_VALUE);
+    // Characteristic Value: [flags, heart rate value, 0, 0]
+    setHeartRateMeasurementExpendedEnergy(INITIAL_EXPENDED_ENERGY, /* fromEditText */ false);
+    // Characteristic Value: [flags, heart rate value, energy expended (LSB), energy expended (MSB)]
     setBodySensorLocationValue(LOCATION_OTHER);
     return view;
   }
@@ -200,9 +199,9 @@ public class HeartRateServiceFragment extends ServiceFragment {
     return mHeartRateService;
   }
 
-  private void setHeartRateMeasurementValue(int heartRateMeasurementValue, int expendedEnergy) {
-
-    Log.d(TAG, Arrays.toString(mHeartRateMeasurementCharacteristic.getValue()));
+  private void setHeartRateMeasurementFlags() {
+    // TODO(g-ortuno): The value of flags is hardcoded at the moment. Add ability to change it's
+    // value through the function's arguments.
     /* Set the org.bluetooth.characteristic.heart_rate_measurement
      * characteristic to a byte array of size 4 so
      * we can use setValue(value, format, offset);
@@ -217,18 +216,22 @@ public class HeartRateServiceFragment extends ServiceFragment {
      *   Unused (000)
      */
     mHeartRateMeasurementCharacteristic.setValue(new byte[]{0b00001000, 0, 0, 0});
-    // Characteristic Value: [flags, 0, 0, 0]
-    mHeartRateMeasurementCharacteristic.setValue(heartRateMeasurementValue,
-        HEART_RATE_MEASUREMENT_VALUE_FORMAT,
-        /* offset */ 1);
-    // Characteristic Value: [flags, heart rate value, 0, 0]
-    mEditTextHeartRateMeasurement.setText(Integer.toString(heartRateMeasurementValue));
-    mHeartRateMeasurementCharacteristic.setValue(expendedEnergy,
-        EXPENDED_ENERGY_FORMAT,
-        /* offset */ 2);
-    // Characteristic Value: [flags, heart rate value, energy expended (LSB), energy expended (MSB)]
-    mEditTextEnergyExpended.setText(Integer.toString(expendedEnergy));
   }
+
+  private void setHeartRateMeasurementValue(int heartRateMeasurementValue) {
+    mHeartRateMeasurementCharacteristic.setValue(heartRateMeasurementValue,
+        HEART_RATE_MEASUREMENT_VALUE_FORMAT, /* offset */ 1);
+    mEditTextHeartRateMeasurement.setText(Integer.toString(heartRateMeasurementValue));
+  }
+
+  private void setHeartRateMeasurementExpendedEnergy(int expendedEnergy, boolean fromEditText) {
+    mHeartRateMeasurementCharacteristic.setValue(expendedEnergy, EXPENDED_ENERGY_FORMAT,
+        /* offset */ 2);
+    if (!fromEditText) {
+      mEditTextEnergyExpended.setText(Integer.toString(expendedEnergy));
+    }
+  }
+
   private void setBodySensorLocationValue(int location) {
     mBodySensorLocationCharacteristic.setValue(new byte[]{(byte) location});
     mSpinnerBodySensorLocation.setSelection(location);
@@ -250,19 +253,19 @@ public class HeartRateServiceFragment extends ServiceFragment {
   }
 
   @Override
-  public int writeCharacteristic(BluetoothGattCharacteristic characteristic, byte[] value) {
+  public int writeCharacteristic(BluetoothGattCharacteristic characteristic, int offset, byte[] value) {
     // Heart Rate control point is a 8bit characteristic
+    if (offset != 0) {
+      return BluetoothGatt.GATT_INVALID_OFFSET;
+    }
     if (value.length != 1) {
       return BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
     }
     if ((value[0] & 1) == 1) {
-      mHeartRateMeasurementCharacteristic.setValue(INITIAL_EXPENDED_ENERGY,
-          EXPENDED_ENERGY_FORMAT,
-        /* offset */ 2);
       getActivity().runOnUiThread(new Runnable() {
         @Override
         public void run() {
-          mEditTextEnergyExpended.setText(Integer.toString(INITIAL_EXPENDED_ENERGY));
+          setHeartRateMeasurementExpendedEnergy(INITIAL_EXPENDED_ENERGY, /* fromEditText */ false);
         }
       });
     }
