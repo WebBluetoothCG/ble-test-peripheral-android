@@ -1,6 +1,7 @@
 package io.github.webbluetoothcg.bletestperipheral;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
@@ -34,6 +35,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
    */
   private static final UUID HEART_RATE_SERVICE_UUID = UUID
       .fromString("0000180D-0000-1000-8000-00805f9b34fb");
+
   /**
    * See <a href="https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml">
    * Heart Rate Measurement</a>
@@ -52,10 +54,17 @@ public class HeartRateServiceFragment extends ServiceFragment {
       .fromString("00002A38-0000-1000-8000-00805f9b34fb");
   private static final int LOCATION_OTHER = 0;
 
+  /**
+   * See <a href="https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_control_point.xml">
+   * Heart Rate Control Point</a>
+   */
+  private static final UUID HEART_RATE_CONTROL_POINT_UUID = UUID
+      .fromString("00002A39-0000-1000-8000-00805f9b34fb");
+
   private BluetoothGattService mHeartRateService;
   private BluetoothGattCharacteristic mHeartRateMeasurementCharacteristic;
   private BluetoothGattCharacteristic mBodySensorLocationCharacteristic;
-  // TODO(g-ortuno): Implement Heart Rate Control Point characteristic.
+  private BluetoothGattCharacteristic mHeartRateControlPoint;
 
   private ServiceFragmentDelegate mDelegate;
 
@@ -101,6 +110,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
   };
   private EditText mEditTextEnergyExpended;
   private Spinner mSpinnerBodySensorLocation;
+
   private final OnItemSelectedListener mLocationSpinnerOnItemSelectedListener =
       new OnItemSelectedListener() {
         @Override
@@ -131,10 +141,16 @@ public class HeartRateServiceFragment extends ServiceFragment {
             BluetoothGattCharacteristic.PROPERTY_READ,
             BluetoothGattCharacteristic.PERMISSION_READ);
 
+    mHeartRateControlPoint =
+        new BluetoothGattCharacteristic(HEART_RATE_CONTROL_POINT_UUID,
+            BluetoothGattCharacteristic.PROPERTY_WRITE,
+            BluetoothGattCharacteristic.PERMISSION_WRITE);
+
     mHeartRateService = new BluetoothGattService(HEART_RATE_SERVICE_UUID,
         BluetoothGattService.SERVICE_TYPE_PRIMARY);
     mHeartRateService.addCharacteristic(mHeartRateMeasurementCharacteristic);
     mHeartRateService.addCharacteristic(mBodySensorLocationCharacteristic);
+    mHeartRateService.addCharacteristic(mHeartRateControlPoint);
   }
 
 
@@ -231,5 +247,27 @@ public class HeartRateServiceFragment extends ServiceFragment {
     } catch (NumberFormatException e) {
       return false;
     }
+  }
+
+  @Override
+  public int writeCharacteristic(BluetoothGattCharacteristic characteristic, int offset, byte[] value) {
+    if (offset != 0) {
+      return BluetoothGatt.GATT_INVALID_OFFSET;
+    }
+    // Heart Rate control point is a 8bit characteristic
+    if (value.length != 1) {
+      return BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
+    }
+    if ((value[0] & 1) == 1) {
+      getActivity().runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          mHeartRateMeasurementCharacteristic.setValue(INITIAL_EXPENDED_ENERGY,
+              EXPENDED_ENERGY_FORMAT, /* offset */ 2);
+          mEditTextEnergyExpended.setText(Integer.toString(INITIAL_EXPENDED_ENERGY));
+        }
+      });
+    }
+    return BluetoothGatt.GATT_SUCCESS;
   }
 }

@@ -33,6 +33,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
 
   private TextView mAdvStatus;
   private TextView mConnectionStatus;
+  private ServiceFragment mCurrentServiceFragment;
   private BluetoothGattService mBluetoothGattService;
   private HashSet<BluetoothDevice> mBluetoothDevices;
   private BluetoothManager mBluetoothManager;
@@ -130,19 +131,34 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       super.onCharacteristicReadRequest(device, requestId, offset, characteristic);
       Log.d(TAG, "Device tried to read characteristic: " + characteristic.getUuid());
       Log.d(TAG, "Value: " + Arrays.toString(characteristic.getValue()));
-      if (offset == 0) {
-        mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS,
-            offset, characteristic.getValue());
-      } else {
+      if (offset != 0) {
         mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_INVALID_OFFSET, offset,
-            null);
+            /* value (optional) */ null);
+        return;
       }
+      mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS,
+          offset, characteristic.getValue());
     }
 
     @Override
     public void onNotificationSent(BluetoothDevice device, int status) {
       super.onNotificationSent(device, status);
       Log.v(TAG, "Notification sent. Status: " + status);
+    }
+
+    @Override
+    public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId,
+        BluetoothGattCharacteristic characteristic, boolean preparedWrite, boolean responseNeeded,
+        int offset, byte[] value) {
+      super.onCharacteristicWriteRequest(device, requestId, characteristic, preparedWrite,
+          responseNeeded, offset, value);
+      Log.v(TAG, "Characteristic Write request: " + Arrays.toString(value));
+      int status = mCurrentServiceFragment.writeCharacteristic(characteristic, offset, value);
+      if (responseNeeded) {
+        mGattServer.sendResponse(device, requestId, status,
+            /* No need to respond with an offset */ 0,
+            /* No need to respond with a value */ null);
+      }
     }
   };
 
@@ -161,27 +177,25 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     ensureBleFeaturesAvailable();
 
     // If we are not being restored from a previous state then create and add the fragment.
-    // Initialize it to null otherwise the compiler complains.
-    ServiceFragment currentServiceFragment = null;
     if (savedInstanceState == null) {
       int peripheralIndex = getIntent().getIntExtra(Peripherals.EXTRA_PERIPHERAL_INDEX,
           /* default */ -1);
       if (peripheralIndex == 0) {
-        currentServiceFragment = new BatteryServiceFragment();
+        mCurrentServiceFragment = new BatteryServiceFragment();
       } else if (peripheralIndex == 1) {
-        currentServiceFragment = new HeartRateServiceFragment();
+        mCurrentServiceFragment = new HeartRateServiceFragment();
       } else {
         Log.wtf(TAG, "Service doesn't exist");
       }
       getFragmentManager()
           .beginTransaction()
-          .add(R.id.fragment_container, currentServiceFragment, CURRENT_FRAGMENT_TAG)
+          .add(R.id.fragment_container, mCurrentServiceFragment, CURRENT_FRAGMENT_TAG)
           .commit();
     } else {
-      currentServiceFragment = (ServiceFragment) getFragmentManager()
+      mCurrentServiceFragment = (ServiceFragment) getFragmentManager()
           .findFragmentByTag(CURRENT_FRAGMENT_TAG);
     }
-    mBluetoothGattService = currentServiceFragment.getBluetoothGattService();
+    mBluetoothGattService = mCurrentServiceFragment.getBluetoothGattService();
 
     mAdvSettings = new AdvertiseSettings.Builder()
         .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
