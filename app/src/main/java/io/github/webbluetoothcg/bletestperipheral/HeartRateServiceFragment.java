@@ -256,7 +256,6 @@ public class HeartRateServiceFragment extends ServiceFragment {
       return BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
     }
     if ((value[0] & 1) == 1) {
-
       mHeartRateMeasurementCharacteristic.setValue(INITIAL_EXPENDED_ENERGY,
           EXPENDED_ENERGY_FORMAT,
         /* offset */ 2);
