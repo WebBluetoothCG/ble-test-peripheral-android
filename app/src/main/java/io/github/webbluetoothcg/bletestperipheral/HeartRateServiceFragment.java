@@ -250,18 +250,20 @@ public class HeartRateServiceFragment extends ServiceFragment {
   }
 
   @Override
-  public int writeCharacteristic(BluetoothGattCharacteristic characteristic, byte[] value) {
+  public int writeCharacteristic(BluetoothGattCharacteristic characteristic, int offset, byte[] value) {
+    if (offset != 0) {
+      return BluetoothGatt.GATT_INVALID_OFFSET;
+    }
     // Heart Rate control point is a 8bit characteristic
     if (value.length != 1) {
       return BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
     }
     if ((value[0] & 1) == 1) {
-      mHeartRateMeasurementCharacteristic.setValue(INITIAL_EXPENDED_ENERGY,
-          EXPENDED_ENERGY_FORMAT,
-        /* offset */ 2);
       getActivity().runOnUiThread(new Runnable() {
         @Override
         public void run() {
+          mHeartRateMeasurementCharacteristic.setValue(INITIAL_EXPENDED_ENERGY,
+              EXPENDED_ENERGY_FORMAT, /* offset */ 2);
           mEditTextEnergyExpended.setText(Integer.toString(INITIAL_EXPENDED_ENERGY));
         }
       });

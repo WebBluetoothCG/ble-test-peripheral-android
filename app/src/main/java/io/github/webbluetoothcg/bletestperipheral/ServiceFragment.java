@@ -16,9 +16,9 @@ public abstract class ServiceFragment extends Fragment{
    * @param characteristic Characteristic to write to
    * @param value Value to write to the characteristic
    * @return {@link android.bluetooth.BluetoothGatt#GATT_SUCCESS} if the read operation
-   * was completed successfully.
+   * was completed successfully. See {@link android.bluetooth.BluetoothGatt} for GATT return codes.
    */
-  public int writeCharacteristic(BluetoothGattCharacteristic characteristic, byte[] value) {
+  public int writeCharacteristic(BluetoothGattCharacteristic characteristic, int offset, byte[] value) {
     throw new UnsupportedOperationException("Method writeCharacteristic not overriden");
   };
   /**
