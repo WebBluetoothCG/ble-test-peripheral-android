@@ -154,13 +154,12 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
           responseNeeded, offset, value);
       Log.v(TAG, "Characteristic Write request: " + Arrays.toString(value));
       if (responseNeeded) {
-        if (offset == 0) {
-          int status = mCurrentServiceFragment.writeCharacteristic(characteristic, value);
-          mGattServer.sendResponse(device, requestId, status, offset, value);
-        } else {
+        if (offset != 0) {
           mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_INVALID_OFFSET, offset,
               value);
         }
+        int status = mCurrentServiceFragment.writeCharacteristic(characteristic, value);
+        mGattServer.sendResponse(device, requestId, status, offset, value);
       }
     }
   };
