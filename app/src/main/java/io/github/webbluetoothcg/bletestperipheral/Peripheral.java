@@ -131,13 +131,13 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       super.onCharacteristicReadRequest(device, requestId, offset, characteristic);
       Log.d(TAG, "Device tried to read characteristic: " + characteristic.getUuid());
       Log.d(TAG, "Value: " + Arrays.toString(characteristic.getValue()));
-      if (offset == 0) {
-        mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS,
-            offset, characteristic.getValue());
-      } else {
+      if (offset != 0) {
         mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_INVALID_OFFSET, offset,
             null);
+        return;
       }
+      mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS,
+          offset, characteristic.getValue());
     }
 
     @Override
