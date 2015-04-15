@@ -37,8 +37,8 @@
     <!-- Connection -->
     <string name="label_connectionStatus">Connection Status</string>
     <string name="status_notConnected">Not Connected to any devices</string>
-    <string name="status_connectedTo">Connected to</string>
-    <string name="errorCode">Error Code</string>
+    <string name="status_devicesConnected">Devices Connected:</string>
+    <string name="status_errorWhenConnecting">An error occurred when connecting to a device. Error Code</string>
 
     <!-- Battery Service -->
     <string name="batteryService_name">Battery Service</string>
