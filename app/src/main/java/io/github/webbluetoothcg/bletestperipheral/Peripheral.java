@@ -104,38 +104,23 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       if (status == BluetoothGatt.GATT_SUCCESS) {
         if (newState == BluetoothGatt.STATE_CONNECTED) {
           mBluetoothDevices.add(device);
-          String deviceName = device.getName();
-          // Some devices don't return a name.
-          if (deviceName == null) {
-            deviceName = device.getAddress();
-          }
-          final String message = getString(R.string.status_connectedTo) + " " + deviceName;
-          runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-              mConnectionStatus.setText(message);
-            }
-          });
+          updateConnectedDevicesStatus();
           Log.v(TAG, "Connected to device: " + device.getAddress());
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
           mBluetoothDevices.remove(device);
-          runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-              mConnectionStatus.setText(R.string.status_notConnected);
-            }
-          });
+          updateConnectedDevicesStatus();
           Log.v(TAG, "Disconnected from device");
         }
       } else {
         mBluetoothDevices.remove(device);
+        updateConnectedDevicesStatus();
         // There are too many gatt errors (some of them not even in the documentation) so we just
         // show the error to the user.
-        final String errorMessage = getString(R.string.errorCode) + ": " + status;
+        final String errorMessage = getString(R.string.status_errorWhenConnecting) + ": " + status;
         runOnUiThread(new Runnable() {
           @Override
           public void run() {
-            mConnectionStatus.setText(errorMessage);
+            Toast.makeText(Peripheral.this, errorMessage, Toast.LENGTH_LONG).show();
           }
         });
         Log.e(TAG, "Error when connecting: " + status);
@@ -178,7 +163,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       }
     }
   };
-
   /////////////////////////////////
   ////// Lifecycle Callbacks //////
   /////////////////////////////////
@@ -311,6 +295,17 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   private void resetStatusViews() {
     mAdvStatus.setText(R.string.status_notAdvertising);
     mConnectionStatus.setText(R.string.status_notConnected);
+  }
+
+  private void updateConnectedDevicesStatus() {
+    final String message = getString(R.string.status_devicesConnected) + " "
+        + mBluetoothDevices.size();
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        mConnectionStatus.setText(message);
+      }
+    });
   }
 
   ///////////////////////
