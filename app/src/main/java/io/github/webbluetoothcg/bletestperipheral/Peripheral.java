@@ -38,6 +38,7 @@ import android.widget.Toast;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 
 import io.github.webbluetoothcg.bletestperipheral.ServiceFragment.ServiceFragmentDelegate;
 
@@ -234,7 +235,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
           Log.e(TAG, "Advertising not supported");
           finish();
         } else {
-          mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
           onStart();
         }
       } else {
@@ -250,17 +250,31 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   @Override
   protected void onStart() {
     super.onStart();
-    mGattServer = mBluetoothManager.openGattServer(this, mGattServerCallback);
+    resetStatusViews();
     // If the user disabled Bluetooth when the app was in the background,
     // openGattServer() will return null.
-    if (mAdvertiser != null && mGattServer != null) {
-      resetStatusViews();
-      // Add a service for a total of three services (Generic Attribute and Generic Access
-      // are present by default).
-      mGattServer.addService(mBluetoothGattService);
+    mGattServer = mBluetoothManager.openGattServer(this, mGattServerCallback);
+    if (mGattServer == null) {
+      ensureBleFeaturesAvailable();
+      return;
+    }
+    Set<BluetoothDevice> devs = mBluetoothAdapter.getBondedDevices();
+    for (BluetoothDevice dev : devs) {
+      if (dev.getName() != null) {
+        Log.d(TAG, "YAYAY: " + dev.getName());
+      } else {
+        Log.d(TAG, "YAYAYY: " + dev.getAddress());
+      }
+    }
+    // Add a service for a total of three services (Generic Attribute and Generic Access
+    // are present by default).
+    mGattServer.addService(mBluetoothGattService);
+
+    if (mBluetoothAdapter.isMultipleAdvertisementSupported()) {
+      mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
       mAdvertiser.startAdvertising(mAdvSettings, mAdvData, mAdvCallback);
     } else {
-      ensureBleFeaturesAvailable();
+      // TODO(g-ortuno): Add message to ask users to pair to be discoverable.
     }
   }
 
@@ -268,13 +282,15 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   @Override
   protected void onStop() {
     super.onPause();
+    if (mGattServer != null) {
+      mGattServer.close();
+    }
     if (mAdvertiser != null) {
       // If stopAdvertising() gets called before close() a null
       // pointer exception is raised.
-      mGattServer.close();
       mAdvertiser.stopAdvertising(mAdvCallback);
-      resetStatusViews();
     }
+    resetStatusViews();
   }
 
   @Override
@@ -312,13 +328,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       // Make sure bluetooth is enabled.
       Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
       startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-    } else if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
-      // Make sure device supports LE advertising.
-      Toast.makeText(this, R.string.bluetoothAdvertisingNotSupported, Toast.LENGTH_LONG).show();
-      Log.e(TAG, "Advertising not supported");
-      finish();
-    } else {
-      mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
     }
   }
 
