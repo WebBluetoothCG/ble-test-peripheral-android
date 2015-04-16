@@ -36,7 +36,6 @@
 
     <!-- Connection -->
     <string name="label_connectionStatus">Connection Status</string>
-    <string name="status_notConnected">Not Connected to any devices</string>
     <string name="status_devicesConnected">Devices Connected:</string>
     <string name="status_errorWhenConnecting">An error occurred when connecting to a device. Error Code</string>
 

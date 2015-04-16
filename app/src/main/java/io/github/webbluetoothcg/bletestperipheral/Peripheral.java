@@ -162,6 +162,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       }
     }
   };
+
   /////////////////////////////////
   ////// Lifecycle Callbacks //////
   /////////////////////////////////
@@ -278,7 +279,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
 
   private void resetStatusViews() {
     mAdvStatus.setText(R.string.status_notAdvertising);
-    mConnectionStatus.setText(R.string.status_notConnected);
+    updateConnectedDevicesStatus();
   }
 
   private void updateConnectedDevicesStatus() {
