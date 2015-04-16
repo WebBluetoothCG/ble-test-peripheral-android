@@ -38,7 +38,6 @@ import android.widget.Toast;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Set;
 
 import io.github.webbluetoothcg.bletestperipheral.ServiceFragment.ServiceFragmentDelegate;
 
@@ -217,10 +216,8 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
         if (!mBluetoothAdapter.isMultipleAdvertisementSupported()) {
           Toast.makeText(this, R.string.bluetoothAdvertisingNotSupported, Toast.LENGTH_LONG).show();
           Log.e(TAG, "Advertising not supported");
-          finish();
-        } else {
-          onStart();
         }
+        onStart();
       } else {
         //TODO(g-ortuno): UX for asking the user to activate bt
         Toast.makeText(this, R.string.bluetoothNotEnabled, Toast.LENGTH_LONG).show();
@@ -242,14 +239,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       ensureBleFeaturesAvailable();
       return;
     }
-    Set<BluetoothDevice> devs = mBluetoothAdapter.getBondedDevices();
-    for (BluetoothDevice dev : devs) {
-      if (dev.getName() != null) {
-        Log.d(TAG, "YAYAY: " + dev.getName());
-      } else {
-        Log.d(TAG, "YAYAYY: " + dev.getAddress());
-      }
-    }
     // Add a service for a total of three services (Generic Attribute and Generic Access
     // are present by default).
     mGattServer.addService(mBluetoothGattService);
@@ -258,7 +247,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
       mAdvertiser.startAdvertising(mAdvSettings, mAdvData, mAdvCallback);
     } else {
-      // TODO(g-ortuno): Add message to ask users to pair to be discoverable.
+      mAdvStatus.setText(R.string.status_noLeAdv);
     }
   }
 
