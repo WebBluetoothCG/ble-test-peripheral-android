@@ -206,6 +206,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     mAdvData = new AdvertiseData.Builder()
         .setIncludeDeviceName(true)
         .setIncludeTxPowerLevel(true)
+        .addServiceUuid(mCurrentServiceFragment.getServiceUUID())
         .build();
   }
 

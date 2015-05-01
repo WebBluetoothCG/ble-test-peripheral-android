@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -153,6 +154,11 @@ public class BatteryServiceFragment extends ServiceFragment {
 
   public BluetoothGattService getBluetoothGattService() {
     return mBatteryService;
+  }
+
+  @Override
+  public ParcelUuid getServiceUUID() {
+    return new ParcelUuid(BATTERY_SERVICE_UUID);
   }
 
   private void setBatteryLevel(int newBatteryLevel, View source) {

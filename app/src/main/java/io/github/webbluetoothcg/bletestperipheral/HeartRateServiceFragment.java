@@ -21,6 +21,7 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -214,6 +215,11 @@ public class HeartRateServiceFragment extends ServiceFragment {
   @Override
   public BluetoothGattService getBluetoothGattService() {
     return mHeartRateService;
+  }
+
+  @Override
+  public ParcelUuid getServiceUUID() {
+    return new ParcelUuid(HEART_RATE_SERVICE_UUID);
   }
 
   private void setHeartRateMeasurementValue(int heartRateMeasurementValue, int expendedEnergy) {
