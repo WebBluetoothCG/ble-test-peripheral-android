@@ -19,9 +19,11 @@ package io.github.webbluetoothcg.bletestperipheral;
 import android.app.Fragment;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
+import android.os.ParcelUuid;
 
 public abstract class ServiceFragment extends Fragment{
   public abstract BluetoothGattService getBluetoothGattService();
+  public abstract ParcelUuid getServiceUUID();
 
   /**
    * Function to communicate to the ServiceFragment that a device wants to write to a
