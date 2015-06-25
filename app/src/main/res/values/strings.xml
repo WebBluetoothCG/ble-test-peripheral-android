@@ -14,15 +14,15 @@
   limitations under the License.
 -->
 <resources>
-    <string name="app_name">BLE Test Peripheral</string>
+    <string name="app_name">BLE Peripheral Simulator</string>
     <string name="title_activity_peripherals">Peripherals</string>
     <string name="title_activity_peripheral">Peripheral</string>
     <string name="notify">Notify</string>
 
     <!-- Bluetooth -->
-    <string name="bluetoothNotSupported">BLE Test Peripheral closing: Bluetooth Not Supported</string>
-    <string name="bluetoothNotEnabled">BLE Test Peripheral closing: Bluetooth is Not Enabled</string>
-    <string name="bluetoothAdvertisingNotSupported">BLE Test Peripheral closing: BLE Advertising Not Supported</string>
+    <string name="bluetoothNotSupported">BLE Peripheral Simulator closing: Bluetooth Not Supported</string>
+    <string name="bluetoothNotEnabled">BLE Peripheral Simulator closing: Bluetooth is Not Enabled</string>
+    <string name="bluetoothAdvertisingNotSupported">BLE Peripheral Simulator closing: BLE Advertising Not Supported</string>
     <string name="bluetoothDeviceNotConnected">Not connected to any Devices</string>
 
     <!-- Adv -->

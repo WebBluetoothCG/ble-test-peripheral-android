@@ -6,7 +6,7 @@ android:
     - build-tools-21.1.2
 
     # The SDK version used to compile
-    - android-21
+    - android-22
 
     # Use extra android repo locations to find the appcompat-v7:21.0.0 support library
     - extra
