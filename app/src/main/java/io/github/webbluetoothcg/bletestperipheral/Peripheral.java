@@ -174,8 +174,8 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
     mConnectionStatus = (TextView) findViewById(R.id.textView_connectionStatus);
     mBluetoothDevices = new HashSet<>();
-    // TODO(g-ortuno): This can be moved to Peripherals.
-    ensureBleFeaturesAvailable();
+    mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+    mBluetoothAdapter = mBluetoothManager.getAdapter();
 
     // If we are not being restored from a previous state then create and add the fragment.
     if (savedInstanceState == null) {
@@ -303,9 +303,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   ////// Bluetooth //////
   ///////////////////////
   private void ensureBleFeaturesAvailable() {
-    mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-    mBluetoothAdapter = mBluetoothManager.getAdapter();
-
     if (mBluetoothAdapter == null) {
       Toast.makeText(this, R.string.bluetoothNotSupported, Toast.LENGTH_LONG).show();
       Log.e(TAG, "Bluetooth not supported");
