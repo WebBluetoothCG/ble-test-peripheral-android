@@ -27,7 +27,7 @@
 
     <!-- Adv -->
     <string name="label_advertisingStatus">Advertising Status</string>
-    <string name="status_advertising">Advertising</string>
+    <string name="status_advertising">Advertising (Keep Screen On)</string>
     <string name="status_notAdvertising">Not Advertising</string>
     <string name="status_advDataTooLarge">Not Advertising. Advertisement is larger than 31 bytes.</string>
     <string name="status_advFeatureUnsupported">Not Advertising. Advertising not supported.</string>
