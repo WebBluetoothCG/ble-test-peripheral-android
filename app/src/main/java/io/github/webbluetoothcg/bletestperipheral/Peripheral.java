@@ -258,7 +258,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
 
   @Override
   protected void onStop() {
-    super.onPause();
+    super.onStop();
     if (mGattServer != null) {
       mGattServer.close();
     }
