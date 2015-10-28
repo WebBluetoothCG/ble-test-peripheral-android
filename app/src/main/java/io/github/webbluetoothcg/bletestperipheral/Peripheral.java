@@ -262,7 +262,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     if (mGattServer != null) {
       mGattServer.close();
     }
-    if (mAdvertiser != null) {
+    if (mBluetoothAdapter.isEnabled() && mAdvertiser != null) {
       // If stopAdvertising() gets called before close() a null
       // pointer exception is raised.
       mAdvertiser.stopAdvertising(mAdvCallback);
