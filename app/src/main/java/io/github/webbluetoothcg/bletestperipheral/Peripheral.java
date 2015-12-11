@@ -33,6 +33,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -213,6 +216,13 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   }
 
   @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.menu_peripheral, menu);
+    return true /* show menu */;
+  }
+
+  @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
     if (requestCode == REQUEST_ENABLE_BT) {
@@ -255,6 +265,14 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     }
   }
 
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == R.id.action_disconnect_devices) {
+      disconnectFromDevices();
+      return true /* event_consumed */;
+    }
+    return false /* event_consumed */;
+  }
 
   @Override
   protected void onStop() {
@@ -292,7 +310,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
 
   private void updateConnectedDevicesStatus() {
     final String message = getString(R.string.status_devicesConnected) + " "
-        + mBluetoothDevices.size();
+        + mBluetoothManager.getConnectedDevices(BluetoothGattServer.GATT).size();
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
@@ -315,5 +333,12 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
     }
   }
-
+  private void disconnectFromDevices() {
+    Log.d(TAG, "Disconnecting devices...");
+    for (BluetoothDevice device : mBluetoothManager.getConnectedDevices(
+        BluetoothGattServer.GATT)) {
+      Log.d(TAG, "Devices: " + device.getAddress() + " " + device.getName());
+      mGattServer.cancelConnection(device);
+    }
+  }
 }

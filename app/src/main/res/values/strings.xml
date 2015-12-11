@@ -54,4 +54,5 @@
     <string name="status_noLeAdv">LE Advertising is not available. Please pair with a device to be
         discoverable.
     </string>
+    <string name="menu_disconnect_devices">Disconnect Devices</string>
 </resources>
