@@ -12,7 +12,7 @@ A developer can use the app to simulate a BLE Peripheral with one of two service
 
 The developer can use the new Web Bluetooth features to connect to the app to Read and Write Characteristics, and Subscribe to Notifications for when the Characteristics change.
 
-From the app a developer can set the characteristics' values and send notifications.
+From the app a developer can set the characteristics' values, send notifications and disconnect.
 
 ![Battery Service](Battery Service.png) ![Heart Rate Service](Heart Rate Service.png)
 
