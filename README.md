@@ -1,4 +1,5 @@
 # BLE Peripheral Simulator
+[![Build Status](https://travis-ci.org/WebBluetoothCG/ble-test-peripheral-android.svg)](https://travis-ci.org/WebBluetoothCG/ble-test-peripheral-android)
 
 The BLE Peripheral Simulator is an Android app that allows developers to try
 out new features of Web Bluetooth without the need for a BLE Peripheral Device.
