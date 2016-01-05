@@ -18,7 +18,7 @@ From the app a developer can set the characteristics' values, send notifications
 
 ### Caveats
 
-BLE peripheral mode was introduced in Android 5.0 Lollipop. Due to hardware chipset dependency, some devices don't have access to this feature. Here's a non-exhaustive list of devices that support BLE peripheral mode at the time of writing: Nexus 5X, Nexus 6, Nexus 9, Moto E 4G LTE, LG G4, Galaxy S6.
+BLE peripheral mode was introduced in Android 5.0 Lollipop. Due to hardware chipset dependency, some devices don't have access to this feature. Here's a non-exhaustive list of devices that support BLE peripheral mode at the time of writing: Nexus 5X, Nexus 6P, Nexus 6, Nexus 9, Moto E 4G LTE, LG G4, Galaxy S6.
 
 Source: http://stackoverflow.com/questions/26482611/chipsets-devices-supporting-android-5-ble-peripheral-mode
 
