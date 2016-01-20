@@ -65,9 +65,6 @@ public class HeartRateServiceFragment extends ServiceFragment {
   private static final int EXPENDED_ENERGY_FORMAT = BluetoothGattCharacteristic.FORMAT_UINT16;
   private static final int INITIAL_EXPENDED_ENERGY = 0;
 
-  private static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION_UUID = UUID
-      .fromString("00002902-0000-1000-8000-00805f9b34fb");
-
   /**
    * See <a href="https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.body_sensor_location.xml">
    * Body Sensor Location</a>
@@ -158,10 +155,8 @@ public class HeartRateServiceFragment extends ServiceFragment {
             BluetoothGattCharacteristic.PROPERTY_NOTIFY,
             /* No permissions */ 0);
 
-    BluetoothGattDescriptor clientCharacteristicConfigurationDescriptor =
-        new BluetoothGattDescriptor(CLIENT_CHARACTERISTIC_CONFIGURATION_UUID,
-            (BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE));
-    mHeartRateMeasurementCharacteristic.addDescriptor(clientCharacteristicConfigurationDescriptor);
+    mHeartRateMeasurementCharacteristic.addDescriptor(
+        Peripheral.getClientCharacteristicConfigurationDescriptor());
 
     mBodySensorLocationCharacteristic =
         new BluetoothGattCharacteristic(BODY_SENSOR_LOCATION_UUID,

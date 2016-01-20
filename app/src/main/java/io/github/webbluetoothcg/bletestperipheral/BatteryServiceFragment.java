@@ -49,9 +49,6 @@ public class BatteryServiceFragment extends ServiceFragment {
   private static final int INITIAL_BATTERY_LEVEL = 50;
   private static final int BATTERY_LEVEL_MAX = 100;
 
-  private static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION_UUID = UUID
-      .fromString("00002902-0000-1000-8000-00805f9b34fb");
-
   private ServiceFragmentDelegate mDelegate;
   // UI
   private EditText mBatteryLevelEditText;
@@ -116,10 +113,8 @@ public class BatteryServiceFragment extends ServiceFragment {
             BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
             BluetoothGattCharacteristic.PERMISSION_READ);
 
-    BluetoothGattDescriptor clientCharacteristicConfigurationDescriptor =
-        new BluetoothGattDescriptor(CLIENT_CHARACTERISTIC_CONFIGURATION_UUID,
-            (BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE));
-    mBatteryLevelCharacteristic.addDescriptor(clientCharacteristicConfigurationDescriptor);
+    mBatteryLevelCharacteristic.addDescriptor(
+        Peripheral.getClientCharacteristicConfigurationDescriptor());
 
     mBatteryService = new BluetoothGattService(BATTERY_SERVICE_UUID,
         BluetoothGattService.SERVICE_TYPE_PRIMARY);
