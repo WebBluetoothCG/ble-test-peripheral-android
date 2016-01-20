@@ -21,6 +21,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServer;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
@@ -162,6 +163,28 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       if (responseNeeded) {
         mGattServer.sendResponse(device, requestId, status,
             /* No need to respond with an offset */ 0,
+            /* No need to respond with a value */ null);
+      }
+    }
+
+    @Override
+    public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset,
+        BluetoothGattDescriptor descriptor) {
+      Log.v(TAG, "Descriptor Read Request: " + descriptor.getUuid());
+      super.onDescriptorReadRequest(device, requestId, offset, descriptor);
+    }
+
+    @Override
+    public void onDescriptorWriteRequest(BluetoothDevice device, int requestId,
+        BluetoothGattDescriptor descriptor, boolean preparedWrite, boolean responseNeeded,
+        int offset,
+        byte[] value) {
+      Log.v(TAG, "Descriptor Write Request " + descriptor.getUuid() + " " + Arrays.toString(value));
+      super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded,
+          offset, value);
+      if(responseNeeded) {
+        mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS,
+            /* No need to respond with offset */ 0,
             /* No need to respond with a value */ null);
       }
     }

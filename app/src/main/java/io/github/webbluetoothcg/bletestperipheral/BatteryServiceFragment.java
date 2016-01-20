@@ -18,6 +18,7 @@ package io.github.webbluetoothcg.bletestperipheral;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
 import android.os.ParcelUuid;
@@ -47,6 +48,9 @@ public class BatteryServiceFragment extends ServiceFragment {
       .fromString("00002A19-0000-1000-8000-00805f9b34fb");
   private static final int INITIAL_BATTERY_LEVEL = 50;
   private static final int BATTERY_LEVEL_MAX = 100;
+
+  private static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION_UUID = UUID
+      .fromString("00002902-0000-1000-8000-00805f9b34fb");
 
   private ServiceFragmentDelegate mDelegate;
   // UI
@@ -111,6 +115,11 @@ public class BatteryServiceFragment extends ServiceFragment {
         new BluetoothGattCharacteristic(BATTERY_LEVEL_UUID,
             BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
             BluetoothGattCharacteristic.PERMISSION_READ);
+
+    BluetoothGattDescriptor clientCharacteristicConfigurationDescriptor =
+        new BluetoothGattDescriptor(CLIENT_CHARACTERISTIC_CONFIGURATION_UUID,
+            (BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE));
+    mBatteryLevelCharacteristic.addDescriptor(clientCharacteristicConfigurationDescriptor);
 
     mBatteryService = new BluetoothGattService(BATTERY_SERVICE_UUID,
         BluetoothGattService.SERVICE_TYPE_PRIMARY);
