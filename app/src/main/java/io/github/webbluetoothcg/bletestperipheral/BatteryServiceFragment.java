@@ -18,6 +18,7 @@ package io.github.webbluetoothcg.bletestperipheral;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
 import android.os.ParcelUuid;
@@ -111,6 +112,9 @@ public class BatteryServiceFragment extends ServiceFragment {
         new BluetoothGattCharacteristic(BATTERY_LEVEL_UUID,
             BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
             BluetoothGattCharacteristic.PERMISSION_READ);
+
+    mBatteryLevelCharacteristic.addDescriptor(
+        Peripheral.getClientCharacteristicConfigurationDescriptor());
 
     mBatteryService = new BluetoothGattService(BATTERY_SERVICE_UUID,
         BluetoothGattService.SERVICE_TYPE_PRIMARY);

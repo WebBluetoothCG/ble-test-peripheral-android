@@ -21,6 +21,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServer;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
@@ -42,6 +43,7 @@ import android.widget.Toast;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.UUID;
 
 import io.github.webbluetoothcg.bletestperipheral.ServiceFragment.ServiceFragmentDelegate;
 
@@ -50,6 +52,9 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   private static final int REQUEST_ENABLE_BT = 1;
   private static final String TAG = Peripheral.class.getCanonicalName();
   private static final String CURRENT_FRAGMENT_TAG = "CURRENT_FRAGMENT";
+
+  private static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION_UUID = UUID
+      .fromString("00002902-0000-1000-8000-00805f9b34fb");
 
   private TextView mAdvStatus;
   private TextView mConnectionStatus;
@@ -162,6 +167,21 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       if (responseNeeded) {
         mGattServer.sendResponse(device, requestId, status,
             /* No need to respond with an offset */ 0,
+            /* No need to respond with a value */ null);
+      }
+    }
+
+    @Override
+    public void onDescriptorWriteRequest(BluetoothDevice device, int requestId,
+        BluetoothGattDescriptor descriptor, boolean preparedWrite, boolean responseNeeded,
+        int offset,
+        byte[] value) {
+      Log.v(TAG, "Descriptor Write Request " + descriptor.getUuid() + " " + Arrays.toString(value));
+      super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded,
+          offset, value);
+      if(responseNeeded) {
+        mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS,
+            /* No need to respond with offset */ 0,
             /* No need to respond with a value */ null);
       }
     }
@@ -322,6 +342,11 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   ///////////////////////
   ////// Bluetooth //////
   ///////////////////////
+  public static BluetoothGattDescriptor getClientCharacteristicConfigurationDescriptor() {
+    return new BluetoothGattDescriptor(CLIENT_CHARACTERISTIC_CONFIGURATION_UUID,
+            (BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE));
+  }
+
   private void ensureBleFeaturesAvailable() {
     if (mBluetoothAdapter == null) {
       Toast.makeText(this, R.string.bluetoothNotSupported, Toast.LENGTH_LONG).show();
