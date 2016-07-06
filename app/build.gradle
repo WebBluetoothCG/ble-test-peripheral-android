@@ -8,14 +8,20 @@ android {
         applicationId "io.github.webbluetoothcg.bletestperipheral"
         minSdkVersion 21
         targetSdkVersion 22
-        versionCode 6
-        versionName "6.0"
+        versionCode 7
+        versionName "7.0"
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    lintOptions {
+        quiet true
+        checkReleaseBuilds false
+        // if true, stop the gradle build if errors are found
+        abortOnError false
     }
 }
 
