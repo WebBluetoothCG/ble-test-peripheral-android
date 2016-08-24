@@ -64,6 +64,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   private BluetoothManager mBluetoothManager;
   private BluetoothAdapter mBluetoothAdapter;
   private AdvertiseData mAdvData;
+  private AdvertiseData mAdvScanResponse;
   private AdvertiseSettings mAdvSettings;
   private BluetoothLeAdvertiser mAdvertiser;
   private final AdvertiseCallback mAdvCallback = new AdvertiseCallback() {
@@ -229,9 +230,11 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
         .setConnectable(true)
         .build();
     mAdvData = new AdvertiseData.Builder()
-        .setIncludeDeviceName(true)
         .setIncludeTxPowerLevel(true)
         .addServiceUuid(mCurrentServiceFragment.getServiceUUID())
+        .build();
+    mAdvScanResponse = new AdvertiseData.Builder()
+        .setIncludeDeviceName(true)
         .build();
   }
 
@@ -279,7 +282,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
 
     if (mBluetoothAdapter.isMultipleAdvertisementSupported()) {
       mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
-      mAdvertiser.startAdvertising(mAdvSettings, mAdvData, mAdvCallback);
+      mAdvertiser.startAdvertising(mAdvSettings, mAdvData, mAdvScanResponse, mAdvCallback);
     } else {
       mAdvStatus.setText(R.string.status_noLeAdv);
     }
