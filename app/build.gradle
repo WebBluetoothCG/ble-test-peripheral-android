@@ -8,8 +8,8 @@ android {
         applicationId "io.github.webbluetoothcg.bletestperipheral"
         minSdkVersion 21
         targetSdkVersion 22
-        versionCode 7
-        versionName "7.0"
+        versionCode 8
+        versionName "8.0"
     }
     buildTypes {
         release {
