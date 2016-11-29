@@ -1,9 +1,13 @@
 language: android
+jdk: oraclejdk8
 android:
   components:
+    # Install latest SDK and tools
+    - platform-tools
+    - tools
 
     # The BuildTools version
-    - build-tools-23.0.1
+    - build-tools-23.0.2
 
     # The SDK version used to compile
     - android-22
