@@ -53,6 +53,8 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   private static final String TAG = Peripheral.class.getCanonicalName();
   private static final String CURRENT_FRAGMENT_TAG = "CURRENT_FRAGMENT";
 
+  private static final UUID CHARACTERISTIC_USER_DESCRIPTION_UUID = UUID
+      .fromString("00002901-0000-1000-8000-00805f9b34fb");
   private static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION_UUID = UUID
       .fromString("00002902-0000-1000-8000-00805f9b34fb");
 
@@ -173,6 +175,21 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     }
 
     @Override
+    public void onDescriptorReadRequest(BluetoothDevice device, int requestId,
+        int offset, BluetoothGattDescriptor descriptor) {
+      Log.d(TAG, "Device tried to read descriptor: " + descriptor.getUuid());
+      Log.d(TAG, "Value: " + Arrays.toString(descriptor.getValue()));
+      super.onDescriptorReadRequest(device, requestId, offset, descriptor);
+      if (offset != 0) {
+        mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_INVALID_OFFSET, offset,
+            /* value (optional) */ null);
+        return;
+      }
+      mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset,
+          descriptor.getValue());
+    }
+
+    @Override
     public void onDescriptorWriteRequest(BluetoothDevice device, int requestId,
         BluetoothGattDescriptor descriptor, boolean preparedWrite, boolean responseNeeded,
         int offset,
@@ -180,7 +197,8 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       Log.v(TAG, "Descriptor Write Request " + descriptor.getUuid() + " " + Arrays.toString(value));
       super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded,
           offset, value);
-      if(responseNeeded) {
+      descriptor.setValue(value);
+      if (responseNeeded) {
         mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS,
             /* No need to respond with offset */ 0,
             /* No need to respond with a value */ null);
@@ -346,8 +364,24 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   ////// Bluetooth //////
   ///////////////////////
   public static BluetoothGattDescriptor getClientCharacteristicConfigurationDescriptor() {
-    return new BluetoothGattDescriptor(CLIENT_CHARACTERISTIC_CONFIGURATION_UUID,
-            (BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE));
+    BluetoothGattDescriptor descriptor = new BluetoothGattDescriptor(
+        CLIENT_CHARACTERISTIC_CONFIGURATION_UUID,
+        (BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE));
+    try {
+      descriptor.setValue(new byte[]{0, 0});
+    } finally {
+      return descriptor;
+    }
+  }
+
+  public static BluetoothGattDescriptor getCharacteristicUserDescriptionDescriptor(String defaultValue) {
+    BluetoothGattDescriptor descriptor = new BluetoothGattDescriptor(
+        CHARACTERISTIC_USER_DESCRIPTION_UUID, (BluetoothGattDescriptor.PERMISSION_READ));
+    try {
+      descriptor.setValue(defaultValue.getBytes("UTF-8"));
+    } finally {
+      return descriptor;
+    }
   }
 
   private void ensureBleFeaturesAvailable() {
