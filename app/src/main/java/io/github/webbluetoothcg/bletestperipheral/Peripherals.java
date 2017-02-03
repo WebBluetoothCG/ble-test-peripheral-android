@@ -26,8 +26,7 @@ import android.widget.ListView;
 
 public class Peripherals extends ListActivity {
 
-  // TODO(g-ortuno): Implement heart rate monitor peripheral
-  private static final String[] PERIPHERALS_NAMES = new String[]{"Battery", "Heart Rate Monitor"};
+  private static final String[] PERIPHERALS_NAMES = new String[]{"Battery", "Heart Rate Monitor", "Health Thermometer"};
   public final static String EXTRA_PERIPHERAL_INDEX = "PERIPHERAL_INDEX";
 
   @Override

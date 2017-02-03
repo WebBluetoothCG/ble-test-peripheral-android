@@ -229,6 +229,8 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
         mCurrentServiceFragment = new BatteryServiceFragment();
       } else if (peripheralIndex == 1) {
         mCurrentServiceFragment = new HeartRateServiceFragment();
+      } else if (peripheralIndex == 2) {
+        mCurrentServiceFragment = new HealthThermometerServiceFragment();
       } else {
         Log.wtf(TAG, "Service doesn't exist");
       }
@@ -373,7 +375,8 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
 
   public static BluetoothGattDescriptor getCharacteristicUserDescriptionDescriptor(String defaultValue) {
     BluetoothGattDescriptor descriptor = new BluetoothGattDescriptor(
-        CHARACTERISTIC_USER_DESCRIPTION_UUID, (BluetoothGattDescriptor.PERMISSION_READ));
+        CHARACTERISTIC_USER_DESCRIPTION_UUID,
+        (BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE));
     try {
       descriptor.setValue(defaultValue.getBytes("UTF-8"));
     } finally {

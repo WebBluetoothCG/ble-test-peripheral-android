@@ -51,6 +51,14 @@
     <string name="label_energyExpended">Energy Expended</string>
     <string name="heartRateMeasurementValueInvalid">Please enter a number between 0 and 255</string>
     <string name="energyExpendedInvalid">Please enter a number between 0 and 65535</string>
+
+    <!-- Health Thermometer Service -->
+    <string name="healthThermometerServiceName">Heath Thermometer Service</string>
+    <string name="label_temperatureMeasurementValue">Temperature</string>
+    <string name="label_measurementInterval">Measurement Interval</string>
+    <string name="temperatureMeasurementValueInvalid">Please enter a valid float number</string>
+    <string name="measurementIntervalInvalid">Please enter a number between 0 and 65535</string>
+
     <string name="status_noLeAdv">LE Advertising is not available. Please pair with a device to be
         discoverable.
     </string>
