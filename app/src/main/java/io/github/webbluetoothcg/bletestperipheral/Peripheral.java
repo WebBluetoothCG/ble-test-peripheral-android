@@ -374,8 +374,11 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   public static BluetoothGattDescriptor getCharacteristicUserDescriptionDescriptor(String defaultValue) {
     BluetoothGattDescriptor descriptor = new BluetoothGattDescriptor(
         CHARACTERISTIC_USER_DESCRIPTION_UUID, (BluetoothGattDescriptor.PERMISSION_READ));
-    descriptor.setValue(defaultValue.getBytes("UTF-8"));
-    return descriptor;
+    try {
+      descriptor.setValue(defaultValue.getBytes("UTF-8"));
+    } finally {
+      return descriptor;
+    }
   }
 
   private void ensureBleFeaturesAvailable() {
