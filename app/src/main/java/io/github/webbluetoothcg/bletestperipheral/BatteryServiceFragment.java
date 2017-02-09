@@ -48,6 +48,8 @@ public class BatteryServiceFragment extends ServiceFragment {
       .fromString("00002A19-0000-1000-8000-00805f9b34fb");
   private static final int INITIAL_BATTERY_LEVEL = 50;
   private static final int BATTERY_LEVEL_MAX = 100;
+  private static final String BATTERY_LEVEL_DESCRIPTION = "The current charge level of a " +
+      "battery. 100% represents fully charged while 0% represents fully discharged.";
 
   private ServiceFragmentDelegate mDelegate;
   // UI
@@ -115,6 +117,9 @@ public class BatteryServiceFragment extends ServiceFragment {
 
     mBatteryLevelCharacteristic.addDescriptor(
         Peripheral.getClientCharacteristicConfigurationDescriptor());
+
+    mBatteryLevelCharacteristic.addDescriptor(
+        Peripheral.getCharacteristicUserDescriptionDescriptor(BATTERY_LEVEL_DESCRIPTION));
 
     mBatteryService = new BluetoothGattService(BATTERY_SERVICE_UUID,
         BluetoothGattService.SERVICE_TYPE_PRIMARY);

@@ -64,6 +64,8 @@ public class HeartRateServiceFragment extends ServiceFragment {
   private static final int INITIAL_HEART_RATE_MEASUREMENT_VALUE = 60;
   private static final int EXPENDED_ENERGY_FORMAT = BluetoothGattCharacteristic.FORMAT_UINT16;
   private static final int INITIAL_EXPENDED_ENERGY = 0;
+  private static final String HEART_RATE_MEASUREMENT_DESCRIPTION = "Used to send a heart rate " +
+      "measurement";
 
   /**
    * See <a href="https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.body_sensor_location.xml">
@@ -157,6 +159,9 @@ public class HeartRateServiceFragment extends ServiceFragment {
 
     mHeartRateMeasurementCharacteristic.addDescriptor(
         Peripheral.getClientCharacteristicConfigurationDescriptor());
+
+    mHeartRateMeasurementCharacteristic.addDescriptor(
+        Peripheral.getCharacteristicUserDescriptionDescriptor(HEART_RATE_MEASUREMENT_DESCRIPTION));
 
     mBodySensorLocationCharacteristic =
         new BluetoothGattCharacteristic(BODY_SENSOR_LOCATION_UUID,
