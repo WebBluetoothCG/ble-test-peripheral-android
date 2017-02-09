@@ -229,6 +229,8 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
         mCurrentServiceFragment = new BatteryServiceFragment();
       } else if (peripheralIndex == 1) {
         mCurrentServiceFragment = new HeartRateServiceFragment();
+      } else if (peripheralIndex == 2) {
+        mCurrentServiceFragment = new ImmediateAlertServiceFragment();
       } else {
         Log.wtf(TAG, "Service doesn't exist");
       }
