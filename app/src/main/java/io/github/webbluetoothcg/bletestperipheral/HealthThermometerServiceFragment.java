@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google Inc. All rights reserved.
+ * Copyright 2017 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.ParcelUuid;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,6 +41,22 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
   /**
    * See <a href="https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.health_thermometer.xml">
    * Health Thermometer Service</a>
+   * This service exposes two characteristics with descriptors:
+   *   - Measurement Interval Characteristic:
+   *       - Listen to notifications to from which you can subscribe to notifications
+   *     - CCCD Descriptor:
+   *       - Read/Write to get/set notifications.
+   *     - User Description Descriptor:
+   *       - Read/Write to get/set the description of the Characteristic.
+   *   - Temperature Measurement Characteristic:
+   *       - Read value to get the current interval of the temperature measurement timer.
+   *       - Write value resets the temperature measurement timer with the new value. This timer
+   *         is responsible for triggering value changed events every "Measurement Interval" value
+   *         and is started automatically when delegate is set.
+   *     - CCCD Descriptor:
+   *       - Read/Write to get/set notifications.
+   *     - User Description Descriptor:
+   *       - Read/Write to get/set the description of the Characteristic.
    */
   private static final UUID HEALTH_THERMOMETER_SERVICE_UUID = UUID
       .fromString("00001809-0000-1000-8000-00805f9b34fb");
@@ -54,8 +69,12 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
       .fromString("00002A1C-0000-1000-8000-00805f9b34fb");
   private static final int TEMPERATURE_MEASUREMENT_VALUE_FORMAT = BluetoothGattCharacteristic.FORMAT_FLOAT;
   private static final float INITIAL_TEMPERATURE_MEASUREMENT_VALUE = 37.0f;
-  private static final String TEMPERATURE_MEASUREMENT_DESCRIPTION = "Used to send a temperature " +
-      "measurement";
+  private static final int EXPONENT_MASK = 0x7f800000;
+  private static final int EXPONENT_SHIFT = 23;
+  private static final int MANTISSA_MASK = 0x007fffff;
+  private static final int MANTISSA_SHIFT = 0;
+  private static final String TEMPERATURE_MEASUREMENT_DESCRIPTION = "This characteristic is used " +
+      "to send a temperature measurement.";
 
   /**
    * See <a href="https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.measurement_interval.xml">
@@ -66,9 +85,9 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
   private static final int MEASUREMENT_INTERVAL_FORMAT = BluetoothGattCharacteristic.FORMAT_UINT16;
   private static final int INITIAL_MEASUREMENT_INTERVAL = 1;
   private static final int MIN_MEASUREMENT_INTERVAL = 1;
-  private static final int MAX_UINT16 = (int) Math.pow(2, 16) - 1;
-  private static final String MEASUREMENT_INTERVAL_DESCRIPTION = "Defines the time between " +
-      "measurements in seconds";
+  private static final int MAX_MEASUREMENT_INTERVAL = (int) Math.pow(2, 16) - 1;
+  private static final String MEASUREMENT_INTERVAL_DESCRIPTION = "This characteristic is used " +
+      "to enable and control the interval between consecutive temperature measurements.";
 
   private BluetoothGattService mHealthThermometerService;
   private BluetoothGattCharacteristic mTemperatureMeasurementCharacteristic;
@@ -100,9 +119,8 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
     @Override
     public boolean onEditorAction(TextView textView, int actionId, KeyEvent event) {
       if (actionId == EditorInfo.IME_ACTION_DONE) {
-        String newMeasurementIntervalString = textView.getText().toString();
-        if (isValidMeasurementIntervalValue(newMeasurementIntervalString)) {
-          int newMeasurementInterval = Integer.parseInt(newMeasurementIntervalString);
+        int newMeasurementInterval = Integer.parseInt(textView.getText().toString());
+        if (isValidMeasurementIntervalValue(newMeasurementInterval)) {
           mMeasurementIntervalCharacteristic.setValue(newMeasurementInterval,
               MEASUREMENT_INTERVAL_FORMAT,
               /* offset */ 0);
@@ -130,15 +148,19 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
         Peripheral.getCharacteristicUserDescriptionDescriptor(TEMPERATURE_MEASUREMENT_DESCRIPTION));
 
     mMeasurementIntervalCharacteristic =
-        new BluetoothGattCharacteristic(MEASUREMENT_INTERVAL_UUID,
-            (BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE),
-            (BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE));
+        new BluetoothGattCharacteristic(
+            MEASUREMENT_INTERVAL_UUID,
+            (BluetoothGattCharacteristic.PROPERTY_READ |
+                BluetoothGattCharacteristic.PROPERTY_WRITE |
+                BluetoothGattCharacteristic.PROPERTY_INDICATE),
+            (BluetoothGattCharacteristic.PERMISSION_READ |
+                BluetoothGattCharacteristic.PERMISSION_WRITE));
 
     mMeasurementIntervalCharacteristic.addDescriptor(
-            Peripheral.getClientCharacteristicConfigurationDescriptor());
+        Peripheral.getClientCharacteristicConfigurationDescriptor());
 
     mMeasurementIntervalCharacteristic.addDescriptor(
-            Peripheral.getCharacteristicUserDescriptionDescriptor(MEASUREMENT_INTERVAL_DESCRIPTION));
+        Peripheral.getCharacteristicUserDescriptionDescriptor(MEASUREMENT_INTERVAL_DESCRIPTION));
 
     mHealthThermometerService = new BluetoothGattService(HEALTH_THERMOMETER_SERVICE_UUID,
         BluetoothGattService.SERVICE_TYPE_PRIMARY);
@@ -161,9 +183,14 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
     mEditTextMeasurementInterval
         .setOnEditorActionListener(mOnEditorActionListenerMeasurementInterval);
 
-    setDefaultMeasurementValues(INITIAL_TEMPERATURE_MEASUREMENT_VALUE,
-        INITIAL_MEASUREMENT_INTERVAL);
-    setTimer(INITIAL_MEASUREMENT_INTERVAL);
+    mEditTextTemperatureMeasurement.setText(Float.toString(INITIAL_TEMPERATURE_MEASUREMENT_VALUE));
+    setTemperatureMeasurementValue(INITIAL_TEMPERATURE_MEASUREMENT_VALUE);
+
+    mMeasurementIntervalCharacteristic.setValue(INITIAL_MEASUREMENT_INTERVAL,
+        MEASUREMENT_INTERVAL_FORMAT,
+        /* offset */ 0);
+    mEditTextMeasurementInterval.setText(Integer.toString(INITIAL_MEASUREMENT_INTERVAL));
+
 
     return view;
   }
@@ -173,6 +200,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
     super.onAttach(activity);
     try {
       mDelegate = (ServiceFragmentDelegate) activity;
+      setTimer(INITIAL_MEASUREMENT_INTERVAL);
     } catch (ClassCastException e) {
       throw new ClassCastException(activity.toString()
           + " must implement ServiceFragmentDelegate");
@@ -196,17 +224,6 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
     return new ParcelUuid(HEALTH_THERMOMETER_SERVICE_UUID);
   }
 
-  private void setDefaultMeasurementValues(float temperatureMeasurementValue, int measurementIntervalValue) {
-
-    mEditTextTemperatureMeasurement.setText(Float.toString(temperatureMeasurementValue));
-    setTemperatureMeasurementValue(temperatureMeasurementValue);
-
-    mMeasurementIntervalCharacteristic.setValue(measurementIntervalValue,
-        MEASUREMENT_INTERVAL_FORMAT,
-        /* offset */ 0);
-    mEditTextMeasurementInterval.setText(Integer.toString(measurementIntervalValue));
-  }
-
   private void setTemperatureMeasurementValue(float temperatureMeasurementValue) {
 
     /* Set the org.bluetooth.characteristic.temperature_measurement
@@ -223,18 +240,19 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
      */
     mTemperatureMeasurementCharacteristic.setValue(new byte[]{0b00000000, 0, 0, 0, 0});
     // Characteristic Value: [flags, 0, 0, 0, 0]
+
     int bits = Float.floatToIntBits(temperatureMeasurementValue);
-    int sign = bits >>> 31;
-    int exp = (bits >>> 23 & ((1 << 8) - 1)) - ((1 << 7) - 1);
-    int mantissa = bits & ((1 << 23) - 1);
-    mTemperatureMeasurementCharacteristic.setValue(mantissa, exp,
+    int exponent = (bits & EXPONENT_MASK) >>> EXPONENT_SHIFT;
+    int mantissa = (bits & MANTISSA_MASK) >>> MANTISSA_SHIFT;
+
+    mTemperatureMeasurementCharacteristic.setValue(mantissa, exponent,
         TEMPERATURE_MEASUREMENT_VALUE_FORMAT,
         /* offset */ 1);
     // Characteristic Value: [flags, temperature measurement value]
   }
 
-  private void setTimer(int measurementIntervalValue) {
-    timer = new CountDownTimer(30000, measurementIntervalValue * 1000) {
+  private void setTimer(int measurementIntervalValueSeconds) {
+    timer = new CountDownTimer(30000, measurementIntervalValueSeconds * 1000) {
       @Override
       public void onTick(long millisUntilFinished) {
         mDelegate.sendNotificationToDevices(mTemperatureMeasurementCharacteristic);
@@ -261,13 +279,8 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
     }
   }
 
-  private boolean isValidMeasurementIntervalValue(String s) {
-    try {
-      int value = Integer.parseInt(s);
-      return (value >= MIN_MEASUREMENT_INTERVAL) && (value <= MAX_UINT16);
-    } catch (NumberFormatException e) {
-      return false;
-    }
+  private boolean isValidMeasurementIntervalValue(int value) {
+    return (value >= MIN_MEASUREMENT_INTERVAL) && (value <= MAX_MEASUREMENT_INTERVAL);
   }
 
   @Override
@@ -282,7 +295,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
     ByteBuffer byteBuffer = ByteBuffer.wrap(value);
     byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
     final int newMeasurementIntervalValue = byteBuffer.getShort();
-    if (!isValidMeasurementIntervalValue(Integer.toString(newMeasurementIntervalValue))) {
+    if (!isValidMeasurementIntervalValue(newMeasurementIntervalValue)) {
       return BluetoothGatt.GATT_FAILURE;
     }
     getActivity().runOnUiThread(new Runnable() {

@@ -53,9 +53,9 @@
     <string name="energyExpendedInvalid">Please enter a number between 0 and 65535</string>
 
     <!-- Health Thermometer Service -->
-    <string name="healthThermometerServiceName">Heath Thermometer Service</string>
-    <string name="label_temperatureMeasurementValue">Temperature</string>
-    <string name="label_measurementInterval">Measurement Interval</string>
+    <string name="healthThermometerServiceName">Health Thermometer Service</string>
+    <string name="label_temperatureMeasurementValue">Temperature (°C)</string>
+    <string name="label_measurementInterval">Measurement Interval (s)</string>
     <string name="temperatureMeasurementValueInvalid">Please enter a valid float number</string>
     <string name="measurementIntervalInvalid">Please enter a number between 0 and 65535</string>
 
