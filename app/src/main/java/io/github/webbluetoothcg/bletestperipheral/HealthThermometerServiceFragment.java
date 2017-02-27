@@ -83,7 +83,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
   private static final UUID MEASUREMENT_INTERVAL_UUID = UUID
       .fromString("00002A21-0000-1000-8000-00805f9b34fb");
   private static final int MEASUREMENT_INTERVAL_FORMAT = BluetoothGattCharacteristic.FORMAT_UINT16;
-  private static final int INITIAL_MEASUREMENT_INTERVAL = 1;
+  private static final int INITIAL_MEASUREMENT_INTERVAL = 2;
   private static final int MIN_MEASUREMENT_INTERVAL = 1;
   private static final int MAX_MEASUREMENT_INTERVAL = (int) Math.pow(2, 16) - 1;
   private static final String MEASUREMENT_INTERVAL_DESCRIPTION = "This characteristic is used " +
@@ -200,7 +200,6 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
     super.onAttach(activity);
     try {
       mDelegate = (ServiceFragmentDelegate) activity;
-      setTimer(INITIAL_MEASUREMENT_INTERVAL);
     } catch (ClassCastException e) {
       throw new ClassCastException(activity.toString()
           + " must implement ServiceFragmentDelegate");
@@ -209,9 +208,20 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
 
   @Override
   public void onDetach() {
-    timer.cancel();
     super.onDetach();
     mDelegate = null;
+  }
+
+  @Override
+  public void onStart() {
+    super.onStart();
+    setTemperatureMeasurementTimerInterval(INITIAL_MEASUREMENT_INTERVAL);
+  }
+
+  @Override
+  public void onStop() {
+    super.onStop();
+    timer.cancel();
   }
 
   @Override
@@ -251,7 +261,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
     // Characteristic Value: [flags, temperature measurement value]
   }
 
-  private void setTimer(int measurementIntervalValueSeconds) {
+  private void setTemperatureMeasurementTimerInterval(int measurementIntervalValueSeconds) {
     timer = new CountDownTimer(30000, measurementIntervalValueSeconds * 1000) {
       @Override
       public void onTick(long millisUntilFinished) {
@@ -263,11 +273,19 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
         timer.start();
       }
     }.start();
+    final String message = String.format(getString(R.string.sendingNotifications),
+        measurementIntervalValueSeconds);
+    getActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+      }
+    });
   }
 
   private void resetTimer(int measurementIntervalValue) {
     timer.cancel();
-    setTimer(measurementIntervalValue);
+    setTemperatureMeasurementTimerInterval(measurementIntervalValue);
   }
 
   private boolean isValidTemperatureMeasurementValue(String s) {
