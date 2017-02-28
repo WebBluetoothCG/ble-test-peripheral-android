@@ -21,20 +21,24 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.ParcelUuid;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
+import android.widget.Switch;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 public class HealthThermometerServiceFragment extends ServiceFragment {
@@ -83,7 +87,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
   private static final UUID MEASUREMENT_INTERVAL_UUID = UUID
       .fromString("00002A21-0000-1000-8000-00805f9b34fb");
   private static final int MEASUREMENT_INTERVAL_FORMAT = BluetoothGattCharacteristic.FORMAT_UINT16;
-  private static final int INITIAL_MEASUREMENT_INTERVAL = 2;
+  private static final int INITIAL_MEASUREMENT_INTERVAL = 1;
   private static final int MIN_MEASUREMENT_INTERVAL = 1;
   private static final int MAX_MEASUREMENT_INTERVAL = (int) Math.pow(2, 16) - 1;
   private static final String MEASUREMENT_INTERVAL_DESCRIPTION = "This characteristic is used " +
@@ -95,7 +99,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
 
   private ServiceFragmentDelegate mDelegate;
 
-  private CountDownTimer timer;
+  private Timer timer;
 
   private EditText mEditTextTemperatureMeasurement;
   private final OnEditorActionListener mOnEditorActionListenerTemperatureMeasurement = new OnEditorActionListener() {
@@ -134,6 +138,28 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
     }
   };
   private EditText mEditTextMeasurementInterval;
+
+  private final OnCheckedChangeListener mOnCheckedChangeListenerSwitchNotifications = new OnCheckedChangeListener() {
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+      if (isChecked) {
+        int newMeasurementInterval = Integer.parseInt(mEditTextMeasurementInterval.getText()
+            .toString());
+        if (isValidMeasurementIntervalValue(newMeasurementInterval)) {
+          mMeasurementIntervalCharacteristic.setValue(newMeasurementInterval,
+              MEASUREMENT_INTERVAL_FORMAT,
+              /* offset */ 0);
+          resetTimer(newMeasurementInterval);
+        } else {
+          Toast.makeText(getActivity(), R.string.measurementIntervalInvalid,
+              Toast.LENGTH_SHORT).show();
+        }
+      } else {
+        timer.cancel();
+      }
+    }
+  };
+  private Switch mSwitchNotifications;
 
   public HealthThermometerServiceFragment() {
     mTemperatureMeasurementCharacteristic =
@@ -191,6 +217,9 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
         /* offset */ 0);
     mEditTextMeasurementInterval.setText(Integer.toString(INITIAL_MEASUREMENT_INTERVAL));
 
+    mSwitchNotifications = (Switch) view.findViewById(R.id.switchNotifications);
+    mSwitchNotifications.setChecked(true);
+    mSwitchNotifications.setOnCheckedChangeListener(mOnCheckedChangeListenerSwitchNotifications);
 
     return view;
   }
@@ -262,25 +291,18 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
   }
 
   private void setTemperatureMeasurementTimerInterval(int measurementIntervalValueSeconds) {
-    timer = new CountDownTimer(30000, measurementIntervalValueSeconds * 1000) {
-      @Override
-      public void onTick(long millisUntilFinished) {
-        mDelegate.sendNotificationToDevices(mTemperatureMeasurementCharacteristic);
-      }
-
-      @Override
-      public void onFinish() {
-        timer.start();
-      }
-    }.start();
-    final String message = String.format(getString(R.string.sendingNotifications),
-        measurementIntervalValueSeconds);
-    getActivity().runOnUiThread(new Runnable() {
+    timer = new Timer();
+    timer.scheduleAtFixedRate(new TimerTask() {
       @Override
       public void run() {
-        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+        getActivity().runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            mDelegate.sendNotificationToDevices(mTemperatureMeasurementCharacteristic);
+          }
+        });
       }
-    });
+    }, 0 /* delay */, measurementIntervalValueSeconds * 1000);
   }
 
   private void resetTimer(int measurementIntervalValue) {

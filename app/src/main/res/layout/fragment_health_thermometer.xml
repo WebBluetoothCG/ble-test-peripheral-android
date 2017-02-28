@@ -67,4 +67,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
     </GridLayout>
+
+    <Switch
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/switchNotifications"
+        android:checked="true"
+        android:text="@string/sendingNotifications"
+        android:layout_below="@+id/gridLayout_characteristicsValues"
+        android:layout_marginTop="36dp"
+        android:layout_alignParentRight="false"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentStart="false"
+        android:layout_centerInParent="true"/>
+
 </RelativeLayout>
