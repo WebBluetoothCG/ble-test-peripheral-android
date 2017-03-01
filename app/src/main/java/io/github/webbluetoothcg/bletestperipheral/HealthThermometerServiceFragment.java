@@ -99,7 +99,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
 
   private ServiceFragmentDelegate mDelegate;
 
-  private Timer timer;
+  private Timer mTimer;
 
   private EditText mEditTextTemperatureMeasurement;
   private final OnEditorActionListener mOnEditorActionListenerTemperatureMeasurement = new OnEditorActionListener() {
@@ -155,7 +155,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
               Toast.LENGTH_SHORT).show();
         }
       } else {
-        timer.cancel();
+        mTimer.cancel();
       }
     }
   };
@@ -250,7 +250,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
   @Override
   public void onStop() {
     super.onStop();
-    timer.cancel();
+    mTimer.cancel();
   }
 
   @Override
@@ -291,8 +291,8 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
   }
 
   private void setTemperatureMeasurementTimerInterval(int measurementIntervalValueSeconds) {
-    timer = new Timer();
-    timer.scheduleAtFixedRate(new TimerTask() {
+    mTimer = new Timer();
+    mTimer.scheduleAtFixedRate(new TimerTask() {
       @Override
       public void run() {
         getActivity().runOnUiThread(new Runnable() {
@@ -306,7 +306,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
   }
 
   private void resetTimer(int measurementIntervalValue) {
-    timer.cancel();
+    mTimer.cancel();
     setTemperatureMeasurementTimerInterval(measurementIntervalValue);
   }
 

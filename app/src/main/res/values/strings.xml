@@ -23,7 +23,6 @@
     <string name="bluetoothNotSupported">BLE Peripheral Simulator closing: Bluetooth Not Supported</string>
     <string name="bluetoothNotEnabled">BLE Peripheral Simulator closing: Bluetooth is Not Enabled</string>
     <string name="bluetoothAdvertisingNotSupported">BLE Peripheral Simulator closing: BLE Advertising Not Supported</string>
-    <string name="bluetoothDeviceNotConnected">Not connected to any Devices</string>
 
     <!-- Adv -->
     <string name="label_advertisingStatus">Advertising Status</string>
