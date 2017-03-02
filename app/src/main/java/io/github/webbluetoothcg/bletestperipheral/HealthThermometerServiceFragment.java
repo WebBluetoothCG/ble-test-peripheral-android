@@ -19,6 +19,7 @@ package io.github.webbluetoothcg.bletestperipheral;
 import android.app.Activity;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
 import android.os.ParcelUuid;
@@ -27,16 +28,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
-import android.widget.Switch;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -55,8 +54,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
    *   - Temperature Measurement Characteristic:
    *       - Read value to get the current interval of the temperature measurement timer.
    *       - Write value resets the temperature measurement timer with the new value. This timer
-   *         is responsible for triggering value changed events every "Measurement Interval" value
-   *         and is started automatically when delegate is set.
+   *         is responsible for triggering value changed events every "Measurement Interval" value.
    *     - CCCD Descriptor:
    *       - Read/Write to get/set notifications.
    *     - User Description Descriptor:
@@ -96,6 +94,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
   private BluetoothGattService mHealthThermometerService;
   private BluetoothGattCharacteristic mTemperatureMeasurementCharacteristic;
   private BluetoothGattCharacteristic mMeasurementIntervalCharacteristic;
+  private BluetoothGattDescriptor mMeasurementIntervalCCCDescriptor;
 
   private ServiceFragmentDelegate mDelegate;
 
@@ -139,27 +138,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
   };
   private EditText mEditTextMeasurementInterval;
 
-  private final OnCheckedChangeListener mOnCheckedChangeListenerSwitchNotifications = new OnCheckedChangeListener() {
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-      if (isChecked) {
-        int newMeasurementInterval = Integer.parseInt(mEditTextMeasurementInterval.getText()
-            .toString());
-        if (isValidMeasurementIntervalValue(newMeasurementInterval)) {
-          mMeasurementIntervalCharacteristic.setValue(newMeasurementInterval,
-              MEASUREMENT_INTERVAL_FORMAT,
-              /* offset */ 0);
-          resetTimer(newMeasurementInterval);
-        } else {
-          Toast.makeText(getActivity(), R.string.measurementIntervalInvalid,
-              Toast.LENGTH_SHORT).show();
-        }
-      } else {
-        mTimer.cancel();
-      }
-    }
-  };
-  private Switch mSwitchNotifications;
+  private TextView mTextViewNotifications;
 
   public HealthThermometerServiceFragment() {
     mTemperatureMeasurementCharacteristic =
@@ -182,8 +161,8 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
             (BluetoothGattCharacteristic.PERMISSION_READ |
                 BluetoothGattCharacteristic.PERMISSION_WRITE));
 
-    mMeasurementIntervalCharacteristic.addDescriptor(
-        Peripheral.getClientCharacteristicConfigurationDescriptor());
+    mMeasurementIntervalCCCDescriptor = Peripheral.getClientCharacteristicConfigurationDescriptor();
+    mMeasurementIntervalCharacteristic.addDescriptor(mMeasurementIntervalCCCDescriptor);
 
     mMeasurementIntervalCharacteristic.addDescriptor(
         Peripheral.getCharacteristicUserDescriptionDescriptor(MEASUREMENT_INTERVAL_DESCRIPTION));
@@ -217,9 +196,8 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
         /* offset */ 0);
     mEditTextMeasurementInterval.setText(Integer.toString(INITIAL_MEASUREMENT_INTERVAL));
 
-    mSwitchNotifications = (Switch) view.findViewById(R.id.switchNotifications);
-    mSwitchNotifications.setChecked(true);
-    mSwitchNotifications.setOnCheckedChangeListener(mOnCheckedChangeListenerSwitchNotifications);
+    mTextViewNotifications = (TextView) view.findViewById(R.id.textView_notifications);
+    mTextViewNotifications.setVisibility(View.INVISIBLE);
 
     return view;
   }
@@ -242,15 +220,9 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
   }
 
   @Override
-  public void onStart() {
-    super.onStart();
-    setTemperatureMeasurementTimerInterval(INITIAL_MEASUREMENT_INTERVAL);
-  }
-
-  @Override
   public void onStop() {
     super.onStop();
-    mTimer.cancel();
+    cancelTimer();
   }
 
   @Override
@@ -305,8 +277,14 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
     }, 0 /* delay */, measurementIntervalValueSeconds * 1000);
   }
 
+  private void cancelTimer() {
+    if (mTimer != null) {
+      mTimer.cancel();
+    }
+  }
+
   private void resetTimer(int measurementIntervalValue) {
-    mTimer.cancel();
+    cancelTimer();
     setTemperatureMeasurementTimerInterval(measurementIntervalValue);
   }
 
@@ -344,9 +322,44 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
         mMeasurementIntervalCharacteristic.setValue(newMeasurementIntervalValue,
             MEASUREMENT_INTERVAL_FORMAT,
             /* offset */ 0);
-        resetTimer(newMeasurementIntervalValue);
+        if (mMeasurementIntervalCCCDescriptor.getValue() == BluetoothGattDescriptor.ENABLE_INDICATION_VALUE) {
+          resetTimer(newMeasurementIntervalValue);
+          mTextViewNotifications.setVisibility(View.VISIBLE);
+        }
       }
     });
     return BluetoothGatt.GATT_SUCCESS;
   }
+
+  @Override
+  public void hasWrittenClientCharacteristicConfigurationDescriptor(BluetoothGattDescriptor descriptor) {
+    if (descriptor.getCharacteristic().getUuid() != TEMPERATURE_MEASUREMENT_UUID) {
+      return;
+    }
+    if (Arrays.equals(descriptor.getValue(), BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)) {
+      getActivity().runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          int newMeasurementInterval = Integer.parseInt(mEditTextMeasurementInterval.getText()
+              .toString());
+          if (isValidMeasurementIntervalValue(newMeasurementInterval)) {
+            mMeasurementIntervalCharacteristic.setValue(newMeasurementInterval,
+                MEASUREMENT_INTERVAL_FORMAT,
+              /* offset */ 0);
+            resetTimer(newMeasurementInterval);
+            mTextViewNotifications.setVisibility(View.VISIBLE);
+          }
+        }
+      });
+    } else if (Arrays.equals(descriptor.getValue(), BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE)) {
+      cancelTimer();
+      getActivity().runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          mTextViewNotifications.setVisibility(View.INVISIBLE);
+        }
+      });
+    }
+  }
+
 }

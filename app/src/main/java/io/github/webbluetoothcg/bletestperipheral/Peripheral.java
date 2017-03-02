@@ -177,9 +177,9 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     @Override
     public void onDescriptorReadRequest(BluetoothDevice device, int requestId,
         int offset, BluetoothGattDescriptor descriptor) {
+      super.onDescriptorReadRequest(device, requestId, offset, descriptor);
       Log.d(TAG, "Device tried to read descriptor: " + descriptor.getUuid());
       Log.d(TAG, "Value: " + Arrays.toString(descriptor.getValue()));
-      super.onDescriptorReadRequest(device, requestId, offset, descriptor);
       if (offset != 0) {
         mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_INVALID_OFFSET, offset,
             /* value (optional) */ null);
@@ -194,10 +194,13 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
         BluetoothGattDescriptor descriptor, boolean preparedWrite, boolean responseNeeded,
         int offset,
         byte[] value) {
-      Log.v(TAG, "Descriptor Write Request " + descriptor.getUuid() + " " + Arrays.toString(value));
       super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded,
           offset, value);
+      Log.v(TAG, "Descriptor Write Request " + descriptor.getUuid() + " " + Arrays.toString(value));
       descriptor.setValue(value);
+      if (descriptor.getUuid() == CLIENT_CHARACTERISTIC_CONFIGURATION_UUID) {
+        mCurrentServiceFragment.hasWrittenClientCharacteristicConfigurationDescriptor(descriptor);
+      }
       if (responseNeeded) {
         mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS,
             /* No need to respond with offset */ 0,

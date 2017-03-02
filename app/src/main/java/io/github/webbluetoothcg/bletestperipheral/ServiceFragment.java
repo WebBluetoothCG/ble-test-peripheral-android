@@ -34,11 +34,21 @@ public abstract class ServiceFragment extends Fragment{
    * return a code appropriately. The ServiceFragment should update the UI to reflect the change.
    * @param characteristic Characteristic to write to
    * @param value Value to write to the characteristic
-   * @return {@link android.bluetooth.BluetoothGatt#GATT_SUCCESS} if the read operation
+   * @return {@link android.bluetooth.BluetoothGatt#GATT_SUCCESS} if the write operation
    * was completed successfully. See {@link android.bluetooth.BluetoothGatt} for GATT return codes.
    */
   public int writeCharacteristic(BluetoothGattCharacteristic characteristic, int offset, byte[] value) {
-    throw new UnsupportedOperationException("Method writeCharacteristic not overriden");
+    throw new UnsupportedOperationException("Method writeCharacteristic not overridden");
+  };
+  /**
+   * Function to notify to the ServiceFragment that a device has written to a
+   * CCC descriptor.
+   *
+   * The ServiceFragment should update the UI to reflect the change.
+   * @param descriptor Descriptor written to
+   */
+  public void hasWrittenClientCharacteristicConfigurationDescriptor(BluetoothGattDescriptor descriptor) {
+    throw new UnsupportedOperationException("Method hasWrittenClientCharacteristicConfigurationDescriptor not overridden");
   };
   /**
    * This interface must be implemented by activities that contain a ServiceFragment to allow an
