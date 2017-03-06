@@ -197,9 +197,38 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded,
           offset, value);
       Log.v(TAG, "Descriptor Write Request " + descriptor.getUuid() + " " + Arrays.toString(value));
-      descriptor.setValue(value);
+      int status = BluetoothGatt.GATT_SUCCESS;
       if (descriptor.getUuid() == CLIENT_CHARACTERISTIC_CONFIGURATION_UUID) {
-        mCurrentServiceFragment.hasWrittenClientCharacteristicConfigurationDescriptor(descriptor);
+        BluetoothGattCharacteristic characteristic = descriptor.getCharacteristic();
+        boolean supportsNotifications = (characteristic.getProperties() &
+            BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0;
+        boolean supportsIndications = (characteristic.getProperties() &
+            BluetoothGattCharacteristic.PROPERTY_INDICATE) != 0;
+
+        if (!(supportsNotifications || supportsIndications)) {
+          status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
+        } else if (value.length != 2) {
+          status = BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
+        } else if (Arrays.equals(value, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE)) {
+          status = BluetoothGatt.GATT_SUCCESS;
+          mCurrentServiceFragment.notificationsDisabled(characteristic);
+          descriptor.setValue(value);
+        } else if (supportsNotifications &&
+            Arrays.equals(value, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)) {
+          status = BluetoothGatt.GATT_SUCCESS;
+          mCurrentServiceFragment.notificationsEnabled(characteristic, false /* indicate */);
+          descriptor.setValue(value);
+        } else if (supportsIndications &&
+            Arrays.equals(value, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)) {
+          status = BluetoothGatt.GATT_SUCCESS;
+          mCurrentServiceFragment.notificationsEnabled(characteristic, true /* indicate */);
+          descriptor.setValue(value);
+        } else {
+          status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
+        }
+      } else {
+        status = BluetoothGatt.GATT_SUCCESS;
+        descriptor.setValue(value);
       }
       if (responseNeeded) {
         mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS,

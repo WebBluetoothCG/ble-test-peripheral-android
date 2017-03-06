@@ -35,7 +35,6 @@ import android.widget.Toast;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -197,7 +196,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
     mEditTextMeasurementInterval.setText(Integer.toString(INITIAL_MEASUREMENT_INTERVAL));
 
     mTextViewNotifications = (TextView) view.findViewById(R.id.textView_notifications);
-    mTextViewNotifications.setVisibility(View.INVISIBLE);
+    mTextViewNotifications.setText(R.string.notificationsNotEnabled);
 
     return view;
   }
@@ -324,7 +323,7 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
             /* offset */ 0);
         if (mMeasurementIntervalCCCDescriptor.getValue() == BluetoothGattDescriptor.ENABLE_INDICATION_VALUE) {
           resetTimer(newMeasurementIntervalValue);
-          mTextViewNotifications.setVisibility(View.VISIBLE);
+          mTextViewNotifications.setText(R.string.notificationsEnabled);
         }
       }
     });
@@ -332,34 +331,41 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
   }
 
   @Override
-  public void hasWrittenClientCharacteristicConfigurationDescriptor(BluetoothGattDescriptor descriptor) {
-    if (descriptor.getCharacteristic().getUuid() != TEMPERATURE_MEASUREMENT_UUID) {
+  public void notificationsDisabled(BluetoothGattCharacteristic characteristic) {
+    if (characteristic.getUuid() != TEMPERATURE_MEASUREMENT_UUID) {
       return;
     }
-    if (Arrays.equals(descriptor.getValue(), BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)) {
-      getActivity().runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          int newMeasurementInterval = Integer.parseInt(mEditTextMeasurementInterval.getText()
-              .toString());
-          if (isValidMeasurementIntervalValue(newMeasurementInterval)) {
-            mMeasurementIntervalCharacteristic.setValue(newMeasurementInterval,
-                MEASUREMENT_INTERVAL_FORMAT,
-              /* offset */ 0);
-            resetTimer(newMeasurementInterval);
-            mTextViewNotifications.setVisibility(View.VISIBLE);
-          }
-        }
-      });
-    } else if (Arrays.equals(descriptor.getValue(), BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE)) {
-      cancelTimer();
-      getActivity().runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          mTextViewNotifications.setVisibility(View.INVISIBLE);
-        }
-      });
+    cancelTimer();
+    getActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        mTextViewNotifications.setText(R.string.notificationsNotEnabled);
+      }
+    });
+  }
+
+  @Override
+  public void notificationsEnabled(BluetoothGattCharacteristic characteristic, boolean indicate) {
+    if (characteristic.getUuid() != TEMPERATURE_MEASUREMENT_UUID) {
+      return;
     }
+    if (!indicate) {
+      return;
+    }
+    getActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        int newMeasurementInterval = Integer.parseInt(mEditTextMeasurementInterval.getText()
+            .toString());
+        if (isValidMeasurementIntervalValue(newMeasurementInterval)) {
+          mMeasurementIntervalCharacteristic.setValue(newMeasurementInterval,
+              MEASUREMENT_INTERVAL_FORMAT,
+            /* offset */ 0);
+          resetTimer(newMeasurementInterval);
+          mTextViewNotifications.setText(R.string.notificationsEnabled);
+        }
+      }
+    });
   }
 
 }

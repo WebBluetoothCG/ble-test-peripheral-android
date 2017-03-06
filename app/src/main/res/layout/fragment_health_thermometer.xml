@@ -72,7 +72,6 @@
         android:layout_width="wrap_content"
         android:layout_height="56dp"
         android:id="@+id/textView_notifications"
-        android:text="@string/sendingNotifications"
         android:textAppearance="@style/text"
         android:gravity="center_vertical"
         android:layout_below="@+id/gridLayout_characteristicsValues"

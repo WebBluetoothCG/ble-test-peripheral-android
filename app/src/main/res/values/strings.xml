@@ -57,7 +57,8 @@
     <string name="label_measurementInterval">Measurement Interval (s)</string>
     <string name="temperatureMeasurementValueInvalid">Please enter a valid float number</string>
     <string name="measurementIntervalInvalid">Please enter a number between 0 and 65535</string>
-    <string name="sendingNotifications">Sending notifications...</string>
+    <string name="notificationsEnabled">Notifications enabled</string>
+    <string name="notificationsNotEnabled">Notifications not enabled</string>
 
     <string name="status_noLeAdv">LE Advertising is not available. Please pair with a device to be
         discoverable.
