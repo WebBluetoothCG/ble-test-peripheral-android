@@ -23,7 +23,6 @@
     <string name="bluetoothNotSupported">BLE Peripheral Simulator closing: Bluetooth Not Supported</string>
     <string name="bluetoothNotEnabled">BLE Peripheral Simulator closing: Bluetooth is Not Enabled</string>
     <string name="bluetoothAdvertisingNotSupported">BLE Peripheral Simulator closing: BLE Advertising Not Supported</string>
-    <string name="bluetoothDeviceNotConnected">Not connected to any Devices</string>
 
     <!-- Adv -->
     <string name="label_advertisingStatus">Advertising Status</string>
@@ -51,6 +50,16 @@
     <string name="label_energyExpended">Energy Expended</string>
     <string name="heartRateMeasurementValueInvalid">Please enter a number between 0 and 255</string>
     <string name="energyExpendedInvalid">Please enter a number between 0 and 65535</string>
+
+    <!-- Health Thermometer Service -->
+    <string name="healthThermometerServiceName">Health Thermometer Service</string>
+    <string name="label_temperatureMeasurementValue">Temperature (°C)</string>
+    <string name="label_measurementInterval">Measurement Interval (s)</string>
+    <string name="temperatureMeasurementValueInvalid">Please enter a valid float number</string>
+    <string name="measurementIntervalInvalid">Please enter a number between 0 and 65535</string>
+    <string name="notificationsEnabled">Notifications enabled</string>
+    <string name="notificationsNotEnabled">Notifications not enabled</string>
+
     <string name="status_noLeAdv">LE Advertising is not available. Please pair with a device to be
         discoverable.
     </string>

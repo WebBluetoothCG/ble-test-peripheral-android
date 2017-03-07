@@ -177,9 +177,9 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     @Override
     public void onDescriptorReadRequest(BluetoothDevice device, int requestId,
         int offset, BluetoothGattDescriptor descriptor) {
+      super.onDescriptorReadRequest(device, requestId, offset, descriptor);
       Log.d(TAG, "Device tried to read descriptor: " + descriptor.getUuid());
       Log.d(TAG, "Value: " + Arrays.toString(descriptor.getValue()));
-      super.onDescriptorReadRequest(device, requestId, offset, descriptor);
       if (offset != 0) {
         mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_INVALID_OFFSET, offset,
             /* value (optional) */ null);
@@ -194,10 +194,42 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
         BluetoothGattDescriptor descriptor, boolean preparedWrite, boolean responseNeeded,
         int offset,
         byte[] value) {
-      Log.v(TAG, "Descriptor Write Request " + descriptor.getUuid() + " " + Arrays.toString(value));
       super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded,
           offset, value);
-      descriptor.setValue(value);
+      Log.v(TAG, "Descriptor Write Request " + descriptor.getUuid() + " " + Arrays.toString(value));
+      int status = BluetoothGatt.GATT_SUCCESS;
+      if (descriptor.getUuid() == CLIENT_CHARACTERISTIC_CONFIGURATION_UUID) {
+        BluetoothGattCharacteristic characteristic = descriptor.getCharacteristic();
+        boolean supportsNotifications = (characteristic.getProperties() &
+            BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0;
+        boolean supportsIndications = (characteristic.getProperties() &
+            BluetoothGattCharacteristic.PROPERTY_INDICATE) != 0;
+
+        if (!(supportsNotifications || supportsIndications)) {
+          status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
+        } else if (value.length != 2) {
+          status = BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
+        } else if (Arrays.equals(value, BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE)) {
+          status = BluetoothGatt.GATT_SUCCESS;
+          mCurrentServiceFragment.notificationsDisabled(characteristic);
+          descriptor.setValue(value);
+        } else if (supportsNotifications &&
+            Arrays.equals(value, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)) {
+          status = BluetoothGatt.GATT_SUCCESS;
+          mCurrentServiceFragment.notificationsEnabled(characteristic, false /* indicate */);
+          descriptor.setValue(value);
+        } else if (supportsIndications &&
+            Arrays.equals(value, BluetoothGattDescriptor.ENABLE_INDICATION_VALUE)) {
+          status = BluetoothGatt.GATT_SUCCESS;
+          mCurrentServiceFragment.notificationsEnabled(characteristic, true /* indicate */);
+          descriptor.setValue(value);
+        } else {
+          status = BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED;
+        }
+      } else {
+        status = BluetoothGatt.GATT_SUCCESS;
+        descriptor.setValue(value);
+      }
       if (responseNeeded) {
         mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS,
             /* No need to respond with offset */ 0,
@@ -229,6 +261,8 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
         mCurrentServiceFragment = new BatteryServiceFragment();
       } else if (peripheralIndex == 1) {
         mCurrentServiceFragment = new HeartRateServiceFragment();
+      } else if (peripheralIndex == 2) {
+        mCurrentServiceFragment = new HealthThermometerServiceFragment();
       } else {
         Log.wtf(TAG, "Service doesn't exist");
       }
@@ -331,16 +365,12 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
 
   @Override
   public void sendNotificationToDevices(BluetoothGattCharacteristic characteristic) {
-    if (mBluetoothDevices.isEmpty()) {
-      Toast.makeText(this, R.string.bluetoothDeviceNotConnected, Toast.LENGTH_SHORT).show();
-    } else {
-      boolean indicate = (characteristic.getProperties()
-          & BluetoothGattCharacteristic.PROPERTY_INDICATE)
-          == BluetoothGattCharacteristic.PROPERTY_INDICATE;
-      for (BluetoothDevice device : mBluetoothDevices) {
-        // true for indication (acknowledge) and false for notification (unacknowledge).
-        mGattServer.notifyCharacteristicChanged(device, characteristic, indicate);
-      }
+    boolean indicate = (characteristic.getProperties()
+        & BluetoothGattCharacteristic.PROPERTY_INDICATE)
+        == BluetoothGattCharacteristic.PROPERTY_INDICATE;
+    for (BluetoothDevice device : mBluetoothDevices) {
+      // true for indication (acknowledge) and false for notification (unacknowledge).
+      mGattServer.notifyCharacteristicChanged(device, characteristic, indicate);
     }
   }
 
@@ -373,7 +403,8 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
 
   public static BluetoothGattDescriptor getCharacteristicUserDescriptionDescriptor(String defaultValue) {
     BluetoothGattDescriptor descriptor = new BluetoothGattDescriptor(
-        CHARACTERISTIC_USER_DESCRIPTION_UUID, (BluetoothGattDescriptor.PERMISSION_READ));
+        CHARACTERISTIC_USER_DESCRIPTION_UUID,
+        (BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE));
     try {
       descriptor.setValue(defaultValue.getBytes("UTF-8"));
     } finally {
