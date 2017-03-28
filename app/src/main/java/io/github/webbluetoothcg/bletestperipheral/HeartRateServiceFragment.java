@@ -302,4 +302,35 @@ public class HeartRateServiceFragment extends ServiceFragment {
     }
     return BluetoothGatt.GATT_SUCCESS;
   }
+
+  @Override
+  public void notificationsEnabled(BluetoothGattCharacteristic characteristic, boolean indicate) {
+    if (characteristic.getUuid() != HEART_RATE_MEASUREMENT_UUID) {
+      return;
+    }
+    if (indicate) {
+      return;
+    }
+    getActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(getActivity(), R.string.notificationsEnabled, Toast.LENGTH_SHORT)
+            .show();
+      }
+    });
+  }
+
+  @Override
+  public void notificationsDisabled(BluetoothGattCharacteristic characteristic) {
+    if (characteristic.getUuid() != HEART_RATE_MEASUREMENT_UUID) {
+      return;
+    }
+    getActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(getActivity(), R.string.notificationsNotEnabled, Toast.LENGTH_SHORT)
+            .show();
+      }
+    });
+  }
 }

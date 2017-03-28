@@ -180,4 +180,35 @@ public class BatteryServiceFragment extends ServiceFragment {
       mBatteryLevelEditText.setText(Integer.toString(newBatteryLevel));
     }
   }
+
+  @Override
+  public void notificationsEnabled(BluetoothGattCharacteristic characteristic, boolean indicate) {
+    if (characteristic.getUuid() != BATTERY_LEVEL_UUID) {
+      return;
+    }
+    if (indicate) {
+      return;
+    }
+    getActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(getActivity(), R.string.notificationsEnabled, Toast.LENGTH_SHORT)
+            .show();
+      }
+    });
+  }
+
+  @Override
+  public void notificationsDisabled(BluetoothGattCharacteristic characteristic) {
+    if (characteristic.getUuid() != BATTERY_LEVEL_UUID) {
+      return;
+    }
+    getActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(getActivity(), R.string.notificationsNotEnabled, Toast.LENGTH_SHORT)
+            .show();
+      }
+    });
+  }
 }
