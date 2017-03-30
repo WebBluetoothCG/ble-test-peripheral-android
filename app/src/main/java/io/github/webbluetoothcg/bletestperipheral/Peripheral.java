@@ -231,7 +231,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
         descriptor.setValue(value);
       }
       if (responseNeeded) {
-        mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS,
+        mGattServer.sendResponse(device, requestId, status,
             /* No need to respond with offset */ 0,
             /* No need to respond with a value */ null);
       }
