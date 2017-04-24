@@ -142,15 +142,15 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
         BluetoothGattCharacteristic characteristic) {
       super.onCharacteristicReadRequest(device, requestId, offset, characteristic);
+      byte [] value = characteristictem.getValue();
       Log.d(TAG, "Device tried to read characteristic: " + characteristic.getUuid());
-      Log.d(TAG, "Value: " + Arrays.toString(characteristic.getValue()));
+      Log.d(TAG, "Value: " + Arrays.toString(value));
       if (offset != 0) {
-        mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_INVALID_OFFSET, offset,
-            /* value (optional) */ null);
+        mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset,
+            Arrays.copyOfRange(value, offset, value.length));
         return;
       }
-      mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS,
-          offset, characteristic.getValue());
+      mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
     }
 
     @Override
@@ -178,15 +178,15 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     public void onDescriptorReadRequest(BluetoothDevice device, int requestId,
         int offset, BluetoothGattDescriptor descriptor) {
       super.onDescriptorReadRequest(device, requestId, offset, descriptor);
+      byte [] value = descriptor.getValue();
       Log.d(TAG, "Device tried to read descriptor: " + descriptor.getUuid());
-      Log.d(TAG, "Value: " + Arrays.toString(descriptor.getValue()));
+      Log.d(TAG, "Value: " + Arrays.toString(value));
       if (offset != 0) {
-        mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_INVALID_OFFSET, offset,
-            /* value (optional) */ null);
+        mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset,
+            Arrays.copyOfRange(value, offset, value.length));
         return;
       }
-      mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset,
-          descriptor.getValue());
+      mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value);
     }
 
     @Override
