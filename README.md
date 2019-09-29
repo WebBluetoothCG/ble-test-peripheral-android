@@ -4,7 +4,7 @@
 The BLE Peripheral Simulator is an Android app that allows developers to try
 out new features of Web Bluetooth without the need for a BLE Peripheral Device.
 
-You can build it from source or install it from the [Google Play Store](https://play.google.com/store/apps/details?id=io.github.webbluetoothcg.bletestperipheral).
+You can build it from source or install it from the [Google Play Store](https://play.google.com/store/apps/details?id=io.github.webbluetoothcg.bletestperipheral) or from [F-Droid](https://f-droid.org/packages/io.github.webbluetoothcg.bletestperipheral/).
 
 A developer can use the app to simulate a BLE Peripheral with one of three services:
 
