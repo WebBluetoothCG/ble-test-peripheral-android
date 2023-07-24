@@ -1,12 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 33
     defaultConfig {
-        applicationId "io.github.webbluetoothcg.bletestperipheral"
         minSdkVersion 21
-        targetSdkVersion 22
+        targetSdkVersion 33
         versionCode 10
         versionName '10.0'
     }
@@ -25,5 +23,5 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
 }
